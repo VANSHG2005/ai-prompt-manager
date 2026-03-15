@@ -27,7 +27,7 @@ const usePrompts = () => {
       const data = await promptService.create(formData);
       setPrompts(prev => [data.prompt, ...prev]);
       setStats(prev => ({ ...prev, total: prev.total + 1 }));
-      toast.success('Prompt created!', { icon: '✨' });
+      toast.success('Prompt created');
       return true;
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to create prompt');
@@ -42,7 +42,7 @@ const usePrompts = () => {
     try {
       const data = await promptService.update(id, formData);
       setPrompts(prev => prev.map(p => p._id === id ? data.prompt : p));
-      toast.success('Prompt updated!');
+      toast.success('Prompt updated');
       return true;
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to update prompt');
@@ -72,9 +72,9 @@ const usePrompts = () => {
     try {
       const data = await promptService.toggleFavorite(id);
       setPrompts(prev => prev.map(p => p._id === id ? data.prompt : p));
-      toast.success(data.message, { icon: data.prompt.isFavorite ? '❤️' : '🤍' });
-    } catch (err) {
-      toast.error('Failed to update favorite');
+      toast.success(data.message);
+    } catch {
+      toast.error('Failed to update favourite');
     }
   };
 
@@ -83,13 +83,17 @@ const usePrompts = () => {
       const data = await promptService.duplicate(id);
       setPrompts(prev => [data.prompt, ...prev]);
       setStats(prev => ({ ...prev, total: prev.total + 1 }));
-      toast.success('Prompt duplicated!', { icon: '📋' });
-    } catch (err) {
+      toast.success('Prompt duplicated');
+    } catch {
       toast.error('Failed to duplicate prompt');
     }
   };
 
-  return { prompts, loading, actionLoading, stats, fetchPrompts, createPrompt, updatePrompt, deletePrompt, toggleFavorite, duplicatePrompt };
+  return {
+    prompts, loading, actionLoading, stats,
+    fetchPrompts, createPrompt, updatePrompt,
+    deletePrompt, toggleFavorite, duplicatePrompt,
+  };
 };
 
 export default usePrompts;

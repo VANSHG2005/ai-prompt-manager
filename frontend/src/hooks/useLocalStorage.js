@@ -1,9 +1,5 @@
 import { useState } from 'react';
 
-/**
- * Persists state to localStorage. Survives page refreshes.
- * Used for user preferences like view mode, sort order, etc.
- */
 const useLocalStorage = (key, initialValue) => {
   const [storedValue, setStoredValue] = useState(() => {
     try {

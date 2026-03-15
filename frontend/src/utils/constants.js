@@ -2,21 +2,23 @@ export const CATEGORIES = ['Coding', 'Writing', 'Image', 'Video', 'Marketing', '
 
 export const AI_TOOLS = ['ChatGPT', 'Claude', 'Gemini', 'Midjourney', 'DALL-E', 'Stable Diffusion', 'Other'];
 
+// Legacy colour maps kept for any components that still reference them
+// The design system now uses CSS variables (--cat-*) for theming
 export const CATEGORY_COLORS = {
-  Coding:    { bg: 'bg-blue-500/15',   text: 'text-blue-400',   border: 'border-blue-500/30',   dot: 'bg-blue-400' },
-  Writing:   { bg: 'bg-green-500/15',  text: 'text-green-400',  border: 'border-green-500/30',  dot: 'bg-green-400' },
-  Image:     { bg: 'bg-purple-500/15', text: 'text-purple-400', border: 'border-purple-500/30', dot: 'bg-purple-400' },
-  Video:     { bg: 'bg-orange-500/15', text: 'text-orange-400', border: 'border-orange-500/30', dot: 'bg-orange-400' },
-  Marketing: { bg: 'bg-pink-500/15',   text: 'text-pink-400',   border: 'border-pink-500/30',   dot: 'bg-pink-400' },
-  Other:     { bg: 'bg-gray-500/15',   text: 'text-gray-400',   border: 'border-gray-500/30',   dot: 'bg-gray-400' },
+  Coding:    { bg: 'var(--cat-coding-bg)',    text: 'var(--cat-coding-text)',    dot: 'var(--cat-coding-dot)' },
+  Writing:   { bg: 'var(--cat-writing-bg)',   text: 'var(--cat-writing-text)',   dot: 'var(--cat-writing-dot)' },
+  Image:     { bg: 'var(--cat-image-bg)',     text: 'var(--cat-image-text)',     dot: 'var(--cat-image-dot)' },
+  Video:     { bg: 'var(--cat-video-bg)',     text: 'var(--cat-video-text)',     dot: 'var(--cat-video-dot)' },
+  Marketing: { bg: 'var(--cat-marketing-bg)', text: 'var(--cat-marketing-text)', dot: 'var(--cat-marketing-dot)' },
+  Other:     { bg: 'var(--cat-other-bg)',     text: 'var(--cat-other-text)',     dot: 'var(--cat-other-dot)' },
 };
 
 export const AI_TOOL_COLORS = {
-  ChatGPT:           'text-emerald-400',
-  Claude:            'text-orange-400',
-  Gemini:            'text-blue-400',
-  Midjourney:        'text-purple-400',
-  'DALL-E':          'text-pink-400',
-  'Stable Diffusion':'text-yellow-400',
-  Other:             'text-gray-400',
+  ChatGPT:            'text-emerald-600',
+  Claude:             'text-orange-600',
+  Gemini:             'text-blue-600',
+  Midjourney:         'text-purple-600',
+  'DALL-E':           'text-pink-600',
+  'Stable Diffusion': 'text-amber-600',
+  Other:              'text-gray-500',
 };
