@@ -1,17 +1,37 @@
 const Spinner = ({ size = 'md', className = '' }) => {
-  const sizes = { sm: 'w-4 h-4', md: 'w-8 h-8', lg: 'w-12 h-12' };
+  const sizes = {
+    sm: { width: '16px', height: '16px' },
+    md: { width: '28px', height: '28px' },
+    lg: { width: '40px', height: '40px' },
+  };
+
   return (
-    <div className={`${sizes[size]} animate-spin rounded-full border-2 border-obsidian-500 border-t-neon-blue ${className}`} />
+    <div
+      className={`spinner-pv ${className}`}
+      style={{ ...sizes[size] }}
+    />
   );
 };
 
 export const PageLoader = () => (
-  <div className="min-h-screen flex items-center justify-center bg-obsidian-950">
-    <div className="flex flex-col items-center gap-4">
+  <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-base)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
       <Spinner size="lg" />
-      <p className="text-gray-500 font-body text-sm">Loading...</p>
+      <p style={{ fontFamily: 'var(--f-mono)', fontSize: '12px', color: 'var(--text-tertiary)', letterSpacing: '0.05em' }}>Loading…</p>
     </div>
   </div>
+);
+
+export const LoadingDots = () => (
+  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+    <span className="loading-dot-pv" />
+    <span className="loading-dot-pv" />
+    <span className="loading-dot-pv" />
+  </span>
+);
+
+export const MiniSpinner = ({ dark = false }) => (
+  <span className={dark ? 'mini-spinner-dark-pv' : 'mini-spinner-pv'} />
 );
 
 export default Spinner;

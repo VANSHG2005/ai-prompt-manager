@@ -1,31 +1,30 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { LogOut, Bell } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 
 const Navbar = ({ title = 'Dashboard' }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
 
   return (
-    <header className="fixed top-0 right-0 left-60 h-14 bg-obsidian-900/80 backdrop-blur-sm border-b border-obsidian-700 flex items-center justify-between px-6 z-30">
-      <h2 className="font-display font-semibold text-white text-lg">{title}</h2>
+    <header className="topbar-pv">
+      <h2 className="topbar-title">{title}</h2>
 
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-neon-blue/30 to-neon-purple/30 border border-obsidian-500 flex items-center justify-center">
-            <span className="text-white text-xs font-display font-bold">
-              {user?.fullName?.charAt(0).toUpperCase()}
-            </span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+          <div className="avatar-pv" style={{ width: '28px', height: '28px', fontSize: '11px' }}>
+            {user?.fullName?.charAt(0).toUpperCase()}
           </div>
-          <span className="text-gray-300 font-body text-sm hidden sm:block">{user?.fullName}</span>
+          <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: 500 }} className="hidden sm:block">
+            {user?.fullName}
+          </span>
         </div>
-
         <button
           onClick={() => { logout(); navigate('/'); }}
-          className="btn-secondary flex items-center gap-1.5 text-xs py-1.5"
+          className="btn-pv"
+          style={{ gap: '5px', fontSize: '12.5px' }}
         >
-          <LogOut size={14} />
-          Logout
+          <LogOut size={13} /> Logout
         </button>
       </div>
     </header>
