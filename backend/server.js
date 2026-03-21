@@ -10,10 +10,22 @@ connectDB();
 
 const app = express();
 
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://ai-prompt-manager-lilac.vercel.app'
+];
+
 app.use(cors({
-  origin: 'https://aipromptmanagerbackend.vercel.app',
+  origin: function(origin, callback){
+    if(!origin) return callback(null, true);
+    if(!allowedOrigins.includes(origin)){
+      return callback(new Error('CORS not allowed'), false);
+    }
+    return callback(null, true);
+  },
   credentials: true,
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
