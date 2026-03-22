@@ -1,32 +1,26 @@
-import { CATEGORY_COLORS, AI_TOOL_COLORS } from '../../utils/constants';
-
-/**
- * RESUME FEATURE: Visual Analytics Component
- * Shows prompt distribution across categories and AI tools
- * Uses pure CSS bar charts — no external chart library needed
- */
-
-const BarChart = ({ data, colorMap, type = 'category' }) => {
+const BarChart = ({ data, type = 'category' }) => {
   const max = Math.max(...data.map(d => d.count), 1);
+  const colors = {
+    Coding: '#4a7fd4', Writing: '#2e9944', Image: '#8b4fc2',
+    Video: '#d4621c', Marketing: '#c7336e', Other: '#807d78',
+  };
+
   return (
-    <div className="space-y-2.5">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
       {data.map(({ label, count }) => {
-        const colors = type === 'category'
-          ? (CATEGORY_COLORS[label] || CATEGORY_COLORS.Other)
-          : null;
         const pct = Math.round((count / max) * 100);
+        const color = type === 'category' ? (colors[label] || '#807d78') : 'var(--accent)';
         return (
-          <div key={label} className="flex items-center gap-3">
-            <span className={`text-xs font-body w-24 shrink-0 truncate ${type === 'category' ? colors.text : 'text-gray-400'}`}>
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontFamily: 'var(--f-mono)', fontSize: '12px', color: 'var(--text-secondary)', width: '80px', flexShrink: 0 }}>
               {label}
             </span>
-            <div className="flex-1 bg-obsidian-700 rounded-full h-2 overflow-hidden">
-              <div
-                className={`h-2 rounded-full transition-all duration-700 ${type === 'category' ? colors.dot : 'bg-neon-blue'}`}
-                style={{ width: `${pct}%` }}
-              />
+            <div className="bar-track-pv" style={{ flex: 1 }}>
+              <div className="bar-fill-pv" style={{ width: `${pct}%`, background: color }} />
             </div>
-            <span className="text-gray-500 font-mono text-xs w-5 text-right shrink-0">{count}</span>
+            <span style={{ fontFamily: 'var(--f-mono)', fontSize: '12px', color: 'var(--text-tertiary)', width: '24px', textAlign: 'right' }}>
+              {count}
+            </span>
           </div>
         );
       })}
@@ -34,15 +28,15 @@ const BarChart = ({ data, colorMap, type = 'category' }) => {
   );
 };
 
-const DonutRing = ({ percentage, color = '#58a6ff', size = 80, stroke = 8 }) => {
+const DonutRing = ({ percentage, color = 'var(--accent)', size = 80, stroke = 8 }) => {
   const r = (size - stroke) / 2;
   const circ = 2 * Math.PI * r;
   const offset = circ - (percentage / 100) * circ;
   return (
-    <svg width={size} height={size} className="-rotate-90">
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#21262d" strokeWidth={stroke} />
+    <svg width={size} height={size} style={{ transform: 'rotate(-90deg)' }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="var(--bg-subtle)" strokeWidth={stroke} />
       <circle
-        cx={size / 2} cy={size / 2} r={r}
+        cx={size/2} cy={size/2} r={r}
         fill="none" stroke={color} strokeWidth={stroke}
         strokeDasharray={circ} strokeDashoffset={offset}
         strokeLinecap="round"
@@ -55,7 +49,6 @@ const DonutRing = ({ percentage, color = '#58a6ff', size = 80, stroke = 8 }) => 
 const PromptAnalytics = ({ stats, prompts }) => {
   if (!stats || !prompts) return null;
 
-  // Build category breakdown from prompts
   const catMap = {};
   const toolMap = {};
   prompts.forEach(p => {
@@ -63,47 +56,39 @@ const PromptAnalytics = ({ stats, prompts }) => {
     toolMap[p.aiTool] = (toolMap[p.aiTool] || 0) + 1;
   });
 
-  const catData = Object.entries(catMap)
-    .map(([label, count]) => ({ label, count }))
-    .sort((a, b) => b.count - a.count);
-
-  const toolData = Object.entries(toolMap)
-    .map(([label, count]) => ({ label, count }))
-    .sort((a, b) => b.count - a.count);
-
+  const catData = Object.entries(catMap).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count);
+  const toolData = Object.entries(toolMap).map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count);
   const favPct = stats.total ? Math.round((stats.favorites / stats.total) * 100) : 0;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-      {/* Category breakdown */}
-      <div className="card p-5 md:col-span-1">
-        <h4 className="font-display font-semibold text-white text-sm mb-4">By Category</h4>
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+      {/* Category */}
+      <div className="card-pv" style={{ padding: '20px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '14px' }}>By category</div>
         {catData.length === 0
-          ? <p className="text-gray-600 text-xs">No data yet</p>
-          : <BarChart data={catData} type="category" />
-        }
+          ? <p style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>No data yet</p>
+          : <BarChart data={catData} type="category" />}
       </div>
 
-      {/* AI Tool breakdown */}
-      <div className="card p-5 md:col-span-1">
-        <h4 className="font-display font-semibold text-white text-sm mb-4">By AI Tool</h4>
+      {/* Tool */}
+      <div className="card-pv" style={{ padding: '20px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '14px' }}>By AI tool</div>
         {toolData.length === 0
-          ? <p className="text-gray-600 text-xs">No data yet</p>
-          : <BarChart data={toolData} type="tool" />
-        }
+          ? <p style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>No data yet</p>
+          : <BarChart data={toolData} type="tool" />}
       </div>
 
       {/* Favorite ratio */}
-      <div className="card p-5 flex flex-col items-center justify-center gap-3">
-        <h4 className="font-display font-semibold text-white text-sm">Favorite Ratio</h4>
-        <div className="relative">
-          <DonutRing percentage={favPct} color="#f85149" size={96} stroke={10} />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <span className="font-display font-bold text-white text-lg">{favPct}%</span>
+      <div className="card-pv" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)' }}>Favorite ratio</div>
+        <div style={{ position: 'relative' }}>
+          <DonutRing percentage={favPct} size={96} stroke={10} />
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: 'var(--f-serif)', fontSize: '20px', color: 'var(--text-primary)' }}>{favPct}%</span>
           </div>
         </div>
-        <p className="text-gray-500 font-body text-xs text-center">
-          {stats.favorites} of {stats.total} prompts favorited
+        <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)', textAlign: 'center' }}>
+          {stats.favorites} of {stats.total} favorited
         </p>
       </div>
     </div>

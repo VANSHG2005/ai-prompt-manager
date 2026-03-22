@@ -25,7 +25,6 @@ const Favorites = () => {
 
   const handleToggleFavorite = async (id) => {
     await toggleFavorite(id);
-    // Remove from list if unfavorited
     fetchPrompts({ isFavorite: true });
   };
 
@@ -36,23 +35,31 @@ const Favorites = () => {
 
   return (
     <DashboardLayout title="Favorites">
-      <div className="mb-6">
-        <p className="text-gray-500 font-body text-sm">{prompts.length} favorite prompts</p>
+      <div style={{ marginBottom: '20px' }}>
+        <p style={{ fontFamily: 'var(--f-mono)', fontSize: '12.5px', color: 'var(--text-tertiary)' }}>
+          {prompts.length} favourite prompt{prompts.length !== 1 ? 's' : ''}
+        </p>
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '60px' }}>
+          <Spinner size="lg" />
+        </div>
       ) : prompts.length === 0 ? (
-        <div className="card p-16 text-center">
-          <Heart size={40} className="text-gray-600 mx-auto mb-4" />
-          <h3 className="font-display font-semibold text-white text-lg mb-2">No favorites yet</h3>
-          <p className="text-gray-500 font-body text-sm mb-5">
-            Mark prompts as favorites to see them here
+        <div className="empty-state-pv">
+          <div className="empty-icon-pv">
+            <Heart size={22} />
+          </div>
+          <div className="empty-title-pv">No favourites yet</div>
+          <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '20px' }}>
+            Mark prompts as favourites to see them here
           </p>
-          <Link to="/prompts" className="btn-primary inline-flex">Browse Prompts</Link>
+          <Link to="/prompts" className="btn-pv btn-primary-pv" style={{ gap: '6px', textDecoration: 'none' }}>
+            Browse prompts
+          </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '14px' }}>
           {prompts.map(prompt => (
             <PromptCard
               key={prompt._id}
@@ -73,7 +80,6 @@ const Favorites = () => {
         initialData={editingPrompt}
         loading={actionLoading}
       />
-
       <DeleteConfirm
         isOpen={!!deleteId}
         onClose={() => setDeleteId(null)}

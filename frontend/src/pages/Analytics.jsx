@@ -3,34 +3,20 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import { userService } from '../services/userService';
 import { promptService } from '../services/promptService';
 import Spinner from '../components/common/Spinner';
-import { CATEGORY_COLORS, AI_TOOL_COLORS } from '../utils/constants';
-import { BarChart2, TrendingUp, Tag, Bot, Calendar, Flame, Award, Clock } from 'lucide-react';
+import { BarChart2, TrendingUp, Tag, Bot, Calendar, Award, Clock } from 'lucide-react';
 
 const MetricCard = ({ label, value, sub, icon: Icon, color }) => (
-  <div className="card p-4 flex items-center gap-4">
-    <div className={`w-10 h-10 rounded-xl ${color} flex items-center justify-center shrink-0`}>
-      <Icon size={17} className="text-white" />
+  <div className="stat-card-pv" style={{ '--stat-color': color, display: 'flex', alignItems: 'center', gap: '14px', padding: '16px 18px' }}>
+    <div style={{ width: '36px', height: '36px', borderRadius: 'var(--r-sm)', background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+      <Icon size={16} color={color} />
     </div>
     <div>
-      <p className="font-display font-bold text-white text-2xl tabular-nums">{value ?? '—'}</p>
-      <p className="text-gray-500 font-body text-xs">{label}</p>
-      {sub && <p className="text-gray-600 font-mono text-xs mt-0.5">{sub}</p>}
+      <p style={{ fontFamily: 'var(--f-serif)', fontSize: '26px', color: 'var(--text-primary)', lineHeight: 1, letterSpacing: '-0.02em' }}>{value ?? '—'}</p>
+      <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: '3px' }}>{label}</p>
+      {sub && <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '1px' }}>{sub}</p>}
     </div>
   </div>
 );
-
-const HeatmapRow = ({ label, value, max, color }) => {
-  const pct = max > 0 ? (value / max) * 100 : 0;
-  return (
-    <div className="flex items-center gap-3">
-      <span className="text-gray-400 font-body text-xs w-28 shrink-0 truncate">{label}</span>
-      <div className="flex-1 bg-obsidian-700 rounded-full h-2 overflow-hidden">
-        <div className="h-2 rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: color || '#58a6ff' }} />
-      </div>
-      <span className="text-gray-500 font-mono text-xs w-6 text-right">{value}</span>
-    </div>
-  );
-};
 
 const Analytics = () => {
   const [stats, setStats] = useState(null);
@@ -46,11 +32,11 @@ const Analytics = () => {
 
   if (loading) return (
     <DashboardLayout title="Analytics">
-      <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '80px' }}><Spinner size="lg" /></div>
     </DashboardLayout>
   );
 
-  // Build 30-day calendar heatmap
+  /* 30-day heatmap */
   const days = [];
   for (let i = 29; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i);
@@ -60,85 +46,86 @@ const Analytics = () => {
   }
   const heatMax = Math.max(...days.map(d => d.count), 1);
 
-  // AI tool usage
+  /* AI tool breakdown */
   const toolMap = {};
   prompts.forEach(p => { toolMap[p.aiTool] = (toolMap[p.aiTool] || 0) + 1; });
   const toolData = Object.entries(toolMap).sort((a, b) => b[1] - a[1]);
   const toolMax = Math.max(...toolData.map(d => d[1]), 1);
 
-  // Tag cloud
+  /* Tag cloud */
   const tagMap = {};
   prompts.forEach(p => p.tags?.forEach(t => { tagMap[t] = (tagMap[t] || 0) + 1; }));
   const tagData = Object.entries(tagMap).sort((a, b) => b[1] - a[1]).slice(0, 20);
   const tagMax = Math.max(...tagData.map(d => d[1]), 1);
 
-  // Longest prompt
-  const longest = prompts.reduce((a, b) => (b.promptText.length > a.promptText.length ? b : a), prompts[0] || {});
-  const avgLen = prompts.length ? Math.round(prompts.reduce((s, p) => s + p.promptText.length, 0) / prompts.length) : 0;
-
-  // Most active day
+  const longest = prompts.reduce((a, b) => (b.promptText.length > (a?.promptText?.length || 0) ? b : a), prompts[0] || null);
+  const avgLen  = prompts.length ? Math.round(prompts.reduce((s, p) => s + p.promptText.length, 0) / prompts.length) : 0;
   const mostActive = [...days].sort((a, b) => b.count - a.count)[0];
+
+  const catColors = { Coding:'#4a7fd4', Writing:'#2e9944', Image:'#8b4fc2', Video:'#d4621c', Marketing:'#c7336e', Other:'#807d78' };
+  const toolColors = { ChatGPT:'#2e9944', Claude:'#d4621c', Gemini:'#4a7fd4', Midjourney:'#8b4fc2', 'DALL-E':'#c7336e', 'Stable Diffusion':'#d4940a', Other:'#807d78' };
 
   return (
     <DashboardLayout title="Analytics">
-      <div className="mb-6">
-        <p className="text-gray-500 font-body text-sm">Insights into your prompt library and usage patterns.</p>
+      <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '24px' }}>
+        Insights into your prompt library and usage patterns over time.
+      </p>
+
+      {/* Metric cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '22px' }}>
+        <MetricCard icon={BarChart2} label="Total prompts"    value={stats?.total}           color="#4a7fd4" />
+        <MetricCard icon={Award}     label="Favourites"       value={stats?.favorites}        color="#c84b1a" />
+        <MetricCard icon={Clock}     label="Avg length"       value={`${avgLen}`} sub="chars"  color="#8a6a1a" />
+        <MetricCard icon={Calendar}  label="Most active"      value={mostActive?.count || 0}  color="#2e9944" sub={mostActive?.label || '—'} />
       </div>
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <MetricCard icon={BarChart2} label="Total Prompts"   value={stats?.total}         color="bg-gradient-to-br from-blue-500 to-blue-700" />
-        <MetricCard icon={Award}    label="Favorites"        value={stats?.favorites}      color="bg-gradient-to-br from-red-500 to-pink-600" />
-        <MetricCard icon={Clock}    label="Avg Prompt Length" value={`${avgLen}`}          sub="characters" color="bg-gradient-to-br from-amber-500 to-orange-600" />
-        <MetricCard icon={Flame}    label="Most Active Day"  value={mostActive?.count || 0} sub={mostActive?.label || '—'} color="bg-gradient-to-br from-orange-500 to-red-600" />
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-5">
-        {/* 30-day heatmap */}
-        <div className="lg:col-span-2 card p-5">
-          <h3 className="font-display font-semibold text-white mb-4 flex items-center gap-2">
-            <Calendar size={16} className="text-neon-blue" /> 30-Day Activity
-          </h3>
-          <div className="grid grid-cols-10 gap-1">
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+        {/* Heatmap */}
+        <div className="card-pv" style={{ padding: '22px' }}>
+          <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>30-day activity</p>
+          <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11.5px', color: 'var(--text-tertiary)', marginBottom: '16px' }}>Prompt creation frequency</p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(10,1fr)', gap: '4px' }}>
             {days.map(d => {
               const intensity = heatMax > 0 ? d.count / heatMax : 0;
               return (
                 <div
                   key={d.key}
                   title={`${d.label}: ${d.count} prompt${d.count !== 1 ? 's' : ''}`}
-                  className="aspect-square rounded-sm cursor-default transition-transform hover:scale-125"
-                  style={{ background: d.count === 0 ? '#21262d' : `rgba(88,166,255,${0.2 + intensity * 0.8})` }}
+                  style={{
+                    aspectRatio: '1', borderRadius: '2px', cursor: 'default',
+                    background: d.count === 0 ? 'var(--bg-subtle)' : `rgba(200,71,26,${0.18 + intensity * 0.82})`,
+                    transition: 'transform 0.1s',
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.2)'}
+                  onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                 />
               );
             })}
           </div>
-          <div className="flex items-center justify-end gap-2 mt-3">
-            <span className="text-gray-600 font-mono text-xs">Less</span>
-            {[0.15, 0.35, 0.55, 0.75, 1].map(o => (
-              <div key={o} className="w-3 h-3 rounded-sm" style={{ background: `rgba(88,166,255,${o})` }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginTop: '12px', justifyContent: 'flex-end' }}>
+            <span style={{ fontFamily: 'var(--f-mono)', fontSize: '10.5px', color: 'var(--text-tertiary)' }}>Less</span>
+            {[0.18, 0.38, 0.58, 0.78, 1].map(o => (
+              <div key={o} style={{ width: '12px', height: '12px', borderRadius: '2px', background: `rgba(200,71,26,${o})` }} />
             ))}
-            <span className="text-gray-600 font-mono text-xs">More</span>
+            <span style={{ fontFamily: 'var(--f-mono)', fontSize: '10.5px', color: 'var(--text-tertiary)' }}>More</span>
           </div>
         </div>
 
-        {/* Category pie-ish */}
-        <div className="card p-5">
-          <h3 className="font-display font-semibold text-white mb-4 flex items-center gap-2">
-            <TrendingUp size={16} className="text-neon-purple" /> By Category
-          </h3>
-          <div className="space-y-2.5">
+        {/* Category */}
+        <div className="card-pv" style={{ padding: '22px' }}>
+          <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>By category</p>
+          <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11.5px', color: 'var(--text-tertiary)', marginBottom: '16px' }}>Distribution of your library</p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             {(stats?.categoryBreakdown || []).map(({ _id: cat, count }) => {
-              const colors = CATEGORY_COLORS[cat] || CATEGORY_COLORS.Other;
               const pct = stats.total ? Math.round((count / stats.total) * 100) : 0;
-              const hex = { Coding: '#58a6ff', Writing: '#3fb950', Image: '#bc8cff', Video: '#f78166', Marketing: '#ff7eb6', Other: '#8b949e' }[cat] || '#8b949e';
               return (
                 <div key={cat}>
-                  <div className="flex justify-between mb-1">
-                    <span className={`text-xs font-body ${colors.text}`}>{cat}</span>
-                    <span className="text-gray-500 font-mono text-xs">{pct}%</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                    <span style={{ fontSize: '12.5px', color: 'var(--text-secondary)' }}>{cat}</span>
+                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)' }}>{pct}%</span>
                   </div>
-                  <div className="bg-obsidian-700 rounded-full h-1.5 overflow-hidden">
-                    <div className="h-1.5 rounded-full transition-all duration-700" style={{ width: `${pct}%`, backgroundColor: hex }} />
+                  <div className="bar-track-pv">
+                    <div className="bar-fill-pv" style={{ width: `${pct}%`, background: catColors[cat] || '#807d78' }} />
                   </div>
                 </div>
               );
@@ -147,73 +134,68 @@ const Analytics = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
-        {/* AI Tool usage */}
-        <div className="card p-5">
-          <h3 className="font-display font-semibold text-white mb-4 flex items-center gap-2">
-            <Bot size={16} className="text-emerald-400" /> AI Tool Usage
-          </h3>
-          {toolData.length === 0 ? (
-            <p className="text-gray-600 text-sm">No data yet</p>
-          ) : (
-            <div className="space-y-2.5">
-              {toolData.map(([tool, count]) => {
-                const colorClass = AI_TOOL_COLORS[tool] || 'text-gray-400';
-                const hex = { ChatGPT: '#3fb950', Claude: '#f78166', Gemini: '#58a6ff', Midjourney: '#bc8cff', 'DALL-E': '#ff7eb6', 'Stable Diffusion': '#d29922', Other: '#8b949e' }[tool] || '#8b949e';
-                return (
-                  <div key={tool} className="flex items-center gap-3">
-                    <span className={`text-xs font-mono ${colorClass} w-28 shrink-0`}>{tool}</span>
-                    <div className="flex-1 bg-obsidian-700 rounded-full h-1.5 overflow-hidden">
-                      <div className="h-1.5 rounded-full transition-all duration-700" style={{ width: `${(count / toolMax) * 100}%`, backgroundColor: hex }} />
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '14px' }}>
+        {/* AI Tools */}
+        <div className="card-pv" style={{ padding: '22px' }}>
+          <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>AI tool usage</p>
+          <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11.5px', color: 'var(--text-tertiary)', marginBottom: '16px' }}>Which tools you prompt most</p>
+          {toolData.length === 0
+            ? <p style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>No data yet</p>
+            : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {toolData.map(([tool, count]) => (
+                  <div key={tool} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: '12px', color: 'var(--text-secondary)', width: '110px', flexShrink: 0 }}>{tool}</span>
+                    <div className="bar-track-pv" style={{ flex: 1 }}>
+                      <div className="bar-fill-pv" style={{ width: `${(count / toolMax) * 100}%`, background: toolColors[tool] || '#807d78' }} />
                     </div>
-                    <span className="text-gray-500 font-mono text-xs w-5 text-right">{count}</span>
+                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11.5px', color: 'var(--text-tertiary)', width: '20px', textAlign: 'right' }}>{count}</span>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
         </div>
 
         {/* Tag cloud */}
-        <div className="card p-5">
-          <h3 className="font-display font-semibold text-white mb-4 flex items-center gap-2">
-            <Tag size={16} className="text-neon-blue" /> Tag Cloud
-          </h3>
-          {tagData.length === 0 ? (
-            <p className="text-gray-600 text-sm">No tags yet</p>
-          ) : (
-            <div className="flex flex-wrap gap-2">
-              {tagData.map(([tag, count]) => {
-                const scale = 0.7 + (count / tagMax) * 0.8;
-                const opacity = 0.5 + (count / tagMax) * 0.5;
-                return (
-                  <span key={tag}
-                    className="badge bg-obsidian-700 border border-obsidian-500 text-neon-blue font-mono cursor-default hover:border-neon-blue/40 transition-colors"
-                    style={{ fontSize: `${Math.max(10, scale * 13)}px`, opacity }}
-                    title={`Used ${count} time${count !== 1 ? 's' : ''}`}
-                  >
-                    #{tag} <span className="text-gray-600 text-xs ml-1">{count}</span>
-                  </span>
-                );
-              })}
-            </div>
-          )}
+        <div className="card-pv" style={{ padding: '22px' }}>
+          <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>Tag cloud</p>
+          <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11.5px', color: 'var(--text-tertiary)', marginBottom: '16px' }}>Most used tags across prompts</p>
+          {tagData.length === 0
+            ? <p style={{ fontSize: '13px', color: 'var(--text-tertiary)' }}>No tags yet</p>
+            : (
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                {tagData.map(([tag, count]) => {
+                  const scale = 0.7 + (count / tagMax) * 0.8;
+                  const opacity = 0.5 + (count / tagMax) * 0.5;
+                  return (
+                    <span
+                      key={tag}
+                      className="tag-pv"
+                      style={{ fontSize: `${Math.max(10, scale * 12)}px`, opacity }}
+                      title={`${count} time${count !== 1 ? 's' : ''}`}
+                    >
+                      #{tag} <span style={{ color: 'var(--bg-muted)', marginLeft: '2px' }}>{count}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
         </div>
       </div>
 
       {/* Longest prompt */}
       {longest?.title && (
-        <div className="card p-5">
-          <h3 className="font-display font-semibold text-white mb-3 flex items-center gap-2">
-            <Award size={16} className="text-yellow-400" /> Longest Prompt
-          </h3>
-          <div className="flex items-center gap-3 mb-2">
-            <p className="font-display font-semibold text-white">{longest.title}</p>
-            <span className="badge bg-obsidian-700 text-gray-400 border border-obsidian-500 font-mono text-xs">{longest.promptText.length} chars</span>
-          </div>
-          <p className="text-gray-500 font-mono text-xs leading-relaxed bg-obsidian-900 rounded-lg p-3 border border-obsidian-700 line-clamp-3">
-            {longest.promptText}
+        <div className="card-pv" style={{ padding: '22px' }}>
+          <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Award size={15} color="#d4940a" /> Longest prompt
           </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+            <p style={{ fontWeight: 600, fontSize: '15px', color: 'var(--text-primary)' }}>{longest.title}</p>
+            <span className="tag-pv">{longest.promptText.length} chars</span>
+          </div>
+          <div className="prompt-mono-block-pv" style={{ display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            {longest.promptText}
+          </div>
         </div>
       )}
     </DashboardLayout>

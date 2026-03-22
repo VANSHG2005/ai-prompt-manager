@@ -1,21 +1,19 @@
 import { useState } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
-import { Wand2, Copy, Plus, Star, ChevronRight, Sparkles, Code2, Pen, Image, Video, TrendingUp, Globe } from 'lucide-react';
-import { CATEGORY_COLORS } from '../utils/constants';
+import { Copy, Plus, CheckCheck, Sparkles, Code2, Pen, Image, Video, TrendingUp, Globe } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { promptService } from '../services/promptService';
 
-// Curated starter prompt templates
 const STARTER_PROMPTS = [
   {
     category: 'Coding', aiTool: 'ChatGPT', title: 'Code Reviewer',
     tags: ['code-review', 'best-practices'],
-    promptText: 'You are a senior software engineer conducting a thorough code review. Analyze the following code for: 1) Bugs and logic errors 2) Performance bottlenecks 3) Security vulnerabilities 4) Code style and best practices 5) Suggestions for refactoring. Provide specific, actionable feedback with examples.\n\nCode to review:\n[PASTE CODE HERE]',
+    promptText: 'You are a senior software engineer conducting a thorough code review. Analyse the following code for: 1) Bugs and logic errors 2) Performance bottlenecks 3) Security vulnerabilities 4) Code style and best practices 5) Suggestions for refactoring. Provide specific, actionable feedback with examples.\n\nCode to review:\n[PASTE CODE HERE]',
   },
   {
-    category: 'Coding', aiTool: 'Claude', title: 'Explain Like I\'m 5',
+    category: 'Coding', aiTool: 'Claude', title: "Explain Like I'm 5",
     tags: ['learning', 'explanation'],
-    promptText: 'Explain [TOPIC] in the simplest way possible, as if you\'re explaining to a complete beginner. Use an analogy from everyday life, a step-by-step breakdown, and avoid jargon. Finish with one simple example.',
+    promptText: "Explain [TOPIC] in the simplest way possible, as if you're explaining to a complete beginner. Use an analogy from everyday life, a step-by-step breakdown, and avoid jargon. Finish with one simple example.",
   },
   {
     category: 'Writing', aiTool: 'ChatGPT', title: 'Blog Post Generator',
@@ -25,7 +23,7 @@ const STARTER_PROMPTS = [
   {
     category: 'Writing', aiTool: 'Claude', title: 'Email Rewriter',
     tags: ['email', 'communication', 'professional'],
-    promptText: 'Rewrite the following email to be more [TONE: professional/friendly/concise/persuasive]. Maintain the core message but improve clarity, eliminate filler words, and make it more impactful. If it\'s a request, make it compelling. Add a clear subject line.\n\nOriginal email:\n[PASTE EMAIL]',
+    promptText: 'Rewrite the following email to be more [TONE: professional/friendly/concise/persuasive]. Maintain the core message but improve clarity, eliminate filler words, and make it more impactful. Add a clear subject line.\n\nOriginal email:\n[PASTE EMAIL]',
   },
   {
     category: 'Image', aiTool: 'Midjourney', title: 'Portrait Photography',
@@ -45,33 +43,36 @@ const STARTER_PROMPTS = [
   {
     category: 'Marketing', aiTool: 'Claude', title: 'Social Media Calendar',
     tags: ['social-media', 'content-calendar', 'strategy'],
-    promptText: 'Create a 1-week social media content calendar for [BRAND/PRODUCT] targeting [AUDIENCE]. For each day (Mon-Sun), provide: Platform, Post type (reel/carousel/story/post), Hook/headline, Caption (with emojis), 5 hashtags, Best posting time. Theme: [THEME/CAMPAIGN]. Tone: [BRAND TONE].',
+    promptText: 'Create a 1-week social media content calendar for [BRAND/PRODUCT] targeting [AUDIENCE]. For each day (Mon-Sun), provide: Platform, Post type, Hook/headline, Caption (with emojis), 5 hashtags, Best posting time. Theme: [THEME/CAMPAIGN]. Tone: [BRAND TONE].',
   },
   {
     category: 'Video', aiTool: 'ChatGPT', title: 'YouTube Script Writer',
     tags: ['youtube', 'script', 'video'],
-    promptText: 'Write a YouTube video script about [TOPIC] for a [LENGTH]-minute video. Include: 1) Hook (first 15 seconds that grabs attention) 2) Introduction of what they\'ll learn 3) Main content in 3-5 segments with transitions 4) Engagement prompt (like/comment/subscribe) 5) Strong ending with clear CTA. Style: [educational/entertaining/documentary]. Channel niche: [NICHE].',
+    promptText: 'Write a YouTube video script about [TOPIC] for a [LENGTH]-minute video. Include: 1) Hook (first 15 seconds) 2) Introduction of what they will learn 3) Main content in 3-5 segments with B-roll notes 4) Engagement prompt 5) Strong ending with CTA. Include timestamps.',
   },
   {
     category: 'Other', aiTool: 'ChatGPT', title: 'Study Plan Maker',
     tags: ['study', 'learning', 'productivity'],
-    promptText: 'Create a detailed study plan for learning [SUBJECT/SKILL] in [TIMEFRAME]. I\'m a [BEGINNER/INTERMEDIATE/ADVANCED] learner with [X hours/week] available. Include: Week-by-week breakdown, Resources (books, videos, courses), Practice exercises, Milestones to track progress, Common pitfalls to avoid.',
+    promptText: 'Create a detailed study plan for learning [SUBJECT/SKILL] in [TIMEFRAME]. I am a [BEGINNER/INTERMEDIATE/ADVANCED] learner with [X hours/week] available. Include: Week-by-week breakdown, Resources (books, videos, courses), Practice exercises, Milestones to track progress, Common pitfalls to avoid.',
   },
 ];
 
-const categoryIcons = { Coding: Code2, Writing: Pen, Image: Image, Video: Video, Marketing: TrendingUp, Other: Globe };
+const catIcons = { Coding: Code2, Writing: Pen, Image, Video, Marketing: TrendingUp, Other: Globe };
 
 const Explore = () => {
   const [activeFilter, setActiveFilter] = useState('All');
   const [saving, setSaving] = useState(null);
   const [saved, setSaved] = useState(new Set());
+  const [copiedTitle, setCopiedTitle] = useState(null);
 
-  const categories = ['All', ...Object.keys(categoryIcons)];
+  const categories = ['All', ...Object.keys(catIcons)];
   const filtered = activeFilter === 'All' ? STARTER_PROMPTS : STARTER_PROMPTS.filter(p => p.category === activeFilter);
 
-  const handleCopy = async (text) => {
-    await navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard!', { icon: '📋' });
+  const handleCopy = async (prompt) => {
+    await navigator.clipboard.writeText(prompt.promptText);
+    setCopiedTitle(prompt.title);
+    toast.success('Copied to clipboard');
+    setTimeout(() => setCopiedTitle(null), 2000);
   };
 
   const handleSave = async (prompt) => {
@@ -79,7 +80,7 @@ const Explore = () => {
     try {
       await promptService.create(prompt);
       setSaved(s => new Set([...s, prompt.title]));
-      toast.success(`"${prompt.title}" saved to your library!`, { icon: '✅' });
+      toast.success(`"${prompt.title}" saved to library`);
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save');
     } finally { setSaving(null); }
@@ -88,31 +89,36 @@ const Explore = () => {
   return (
     <DashboardLayout title="Explore">
       {/* Header */}
-      <div className="relative overflow-hidden card p-6 mb-6 border-obsidian-600">
-        <div className="absolute inset-0 bg-gradient-to-r from-neon-purple/5 via-transparent to-neon-blue/5" />
-        <div className="relative">
-          <div className="flex items-center gap-2 mb-2">
-            <Sparkles size={18} className="text-neon-purple" />
-            <h2 className="font-display font-bold text-white text-xl">Starter Templates</h2>
-          </div>
-          <p className="text-gray-400 font-body text-sm">
-            10 expertly crafted prompts across every category. Save any to your library with one click.
-          </p>
+      <div className="card-pv" style={{ padding: '22px', marginBottom: '22px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, var(--accent), #e8a87c, var(--sage))' }} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+          <Sparkles size={16} color="var(--amber)" />
+          <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: '20px', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>Starter templates</h2>
         </div>
+        <p style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>
+          10 expertly crafted prompts across every category. Save any to your library with one click.
+        </p>
       </div>
 
       {/* Category filter */}
-      <div className="flex flex-wrap gap-2 mb-6">
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
         {categories.map(cat => {
-          const colors = CATEGORY_COLORS[cat] || {};
-          const Icon = categoryIcons[cat];
+          const Icon = catIcons[cat];
+          const isActive = activeFilter === cat;
           return (
-            <button key={cat} onClick={() => setActiveFilter(cat)}
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-sm font-body transition-all ${
-                activeFilter === cat
-                  ? cat === 'All' ? 'bg-obsidian-600 border-obsidian-400 text-white' : `${colors.bg} ${colors.text} ${colors.border}`
-                  : 'bg-obsidian-800 border-obsidian-600 text-gray-500 hover:text-gray-300'
-              }`}>
+            <button
+              key={cat}
+              onClick={() => setActiveFilter(cat)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                padding: '6px 12px', borderRadius: 'var(--r-sm)', fontSize: '13px',
+                fontFamily: 'var(--f-sans)', fontWeight: isActive ? 500 : 400, cursor: 'pointer',
+                background: isActive ? 'var(--accent)' : 'var(--bg-surface)',
+                color: isActive ? '#fff' : 'var(--text-secondary)',
+                border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
+                transition: 'all .15s',
+              }}
+            >
               {Icon && <Icon size={13} />}
               {cat}
             </button>
@@ -120,61 +126,60 @@ const Explore = () => {
         })}
       </div>
 
-      {/* Prompt Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: '12px' }}>
         {filtered.map(prompt => {
-          const catColors = CATEGORY_COLORS[prompt.category] || CATEGORY_COLORS.Other;
-          const isSaved = saved.has(prompt.title);
-          const isSaving = saving === prompt.title;
+          const isSaved   = saved.has(prompt.title);
+          const isSaving  = saving === prompt.title;
+          const isCopied  = copiedTitle === prompt.title;
+
           return (
-            <div key={prompt.title} className="card-hover p-5 flex flex-col gap-3 group">
-              {/* Header */}
-              <div className="flex items-start justify-between gap-2">
+            <div key={prompt.title} className="card-pv" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
                 <div>
-                  <h3 className="font-display font-semibold text-white text-sm">{prompt.title}</h3>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className={`badge ${catColors.bg} ${catColors.text} ${catColors.border} border text-xs`}>
-                      <span className={`w-1.5 h-1.5 rounded-full ${catColors.dot} mr-1.5`} />
-                      {prompt.category}
-                    </span>
-                    <span className="text-gray-500 font-mono text-xs">{prompt.aiTool}</span>
+                  <h3 style={{ fontWeight: 600, fontSize: '14.5px', color: 'var(--text-primary)', marginBottom: '6px' }}>{prompt.title}</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span className={`cat-pill-pv cat-${prompt.category}`}><span className="cat-dot-pv" />{prompt.category}</span>
+                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)' }}>{prompt.aiTool}</span>
                   </div>
                 </div>
                 {isSaved && (
-                  <span className="badge bg-green-500/10 text-green-400 border border-green-500/30 text-xs shrink-0">✓ Saved</span>
+                  <span className="tag-pv" style={{ flexShrink: 0, color: 'var(--sage)', borderColor: 'rgba(26,92,82,0.3)', background: 'var(--sage-subtle)' }}>
+                    ✓ Saved
+                  </span>
                 )}
               </div>
 
-              {/* Prompt preview */}
-              <div className="bg-obsidian-900 border border-obsidian-700 rounded-lg p-3 font-mono text-xs text-gray-400 leading-relaxed line-clamp-4 flex-1">
+              <div className="prompt-preview-pv" style={{ WebkitLineClamp: 4 }}>
                 {prompt.promptText}
               </div>
 
-              {/* Tags */}
-              <div className="flex flex-wrap gap-1">
-                {prompt.tags.map(t => (
-                  <span key={t} className="badge bg-obsidian-700 text-gray-500 text-xs">#{t}</span>
-                ))}
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                {prompt.tags.map(t => <span key={t} className="tag-pv">#{t}</span>)}
               </div>
 
-              {/* Actions */}
-              <div className="flex gap-2">
-                <button onClick={() => handleCopy(prompt.promptText)}
-                  className="btn-secondary flex-1 flex items-center justify-center gap-1.5 text-xs py-2">
-                  <Copy size={13} /> Copy
+              <div style={{ display: 'flex', gap: '7px', marginTop: 'auto' }}>
+                <button
+                  onClick={() => handleCopy(prompt)}
+                  className="btn-pv"
+                  style={{ flex: 1, justifyContent: 'center', gap: '6px' }}
+                >
+                  {isCopied ? <><CheckCheck size={13} color="var(--sage)" /> Copied</> : <><Copy size={13} /> Copy</>}
                 </button>
-                <button onClick={() => !isSaved && handleSave(prompt)} disabled={isSaved || isSaving}
-                  className={`flex-1 flex items-center justify-center gap-1.5 text-xs py-2 rounded-lg border font-body font-semibold transition-all ${
-                    isSaved
-                      ? 'bg-green-500/10 border-green-500/30 text-green-400 cursor-default'
-                      : 'btn-primary'
-                  }`}>
-                  {isSaving ? (
-                    <span className="w-3 h-3 border border-obsidian-950/30 border-t-obsidian-950 rounded-full animate-spin" />
-                  ) : (
-                    <Plus size={13} />
-                  )}
-                  {isSaved ? 'Saved' : isSaving ? 'Saving...' : 'Save to Library'}
+                <button
+                  onClick={() => !isSaved && handleSave(prompt)}
+                  disabled={isSaved || isSaving}
+                  className={isSaved ? 'btn-pv' : 'btn-pv btn-primary-pv'}
+                  style={{
+                    flex: 1, justifyContent: 'center', gap: '6px', display: 'flex', alignItems: 'center',
+                    ...(isSaved ? { background: 'var(--sage-subtle)', color: 'var(--sage)', borderColor: 'rgba(26,92,82,0.3)', cursor: 'default' } : {}),
+                  }}
+                >
+                  {isSaving
+                    ? <span className="mini-spinner-pv" />
+                    : <Plus size={13} />
+                  }
+                  {isSaved ? 'Saved' : isSaving ? 'Saving…' : 'Save to library'}
                 </button>
               </div>
             </div>

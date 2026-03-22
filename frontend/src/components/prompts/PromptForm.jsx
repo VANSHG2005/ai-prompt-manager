@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Tag, Wand2, Sparkles } from 'lucide-react';
+import { X, Plus, Wand2, Sparkles } from 'lucide-react';
 import { CATEGORIES, AI_TOOLS } from '../../utils/constants';
 import { improvePrompt, suggestTags, generateTitle } from '../../services/aiGeneratorService';
 import toast from 'react-hot-toast';
+import { MiniSpinner } from '../common/Spinner';
 
 const PromptForm = ({ isOpen, onClose, onSubmit, initialData, loading }) => {
   const [form, setForm] = useState({
@@ -56,190 +57,194 @@ const PromptForm = ({ isOpen, onClose, onSubmit, initialData, loading }) => {
     if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addTag(); }
   };
 
-  // AI inline helpers
   const handleAIImprove = async () => {
-    if (!form.promptText.trim()) return toast.error('Enter a prompt first to improve it');
+    if (!form.promptText.trim()) return toast.error('Enter prompt text first');
     setAiLoading(l => ({ ...l, improve: true }));
     try {
       const improved = await improvePrompt({ promptText: form.promptText });
       setForm(f => ({ ...f, promptText: improved }));
-      toast.success('Prompt improved by AI!', { icon: '⚡' });
-    } catch (err) {
-      toast.error(err.response?.data?.message || 'AI improvement failed');
-    } finally {
-      setAiLoading(l => ({ ...l, improve: false }));
-    }
+      toast.success('Prompt improved');
+    } catch { toast.error('Improvement failed'); }
+    finally { setAiLoading(l => ({ ...l, improve: false })); }
   };
 
   const handleAISuggestTags = async () => {
-    if (!form.promptText.trim()) return toast.error('Enter a prompt first');
+    if (!form.promptText.trim()) return toast.error('Enter prompt text first');
     setAiLoading(l => ({ ...l, tags: true }));
     try {
       const suggested = await suggestTags({ promptText: form.promptText, category: form.category });
-      const newTags = [...new Set([...form.tags, ...suggested])];
-      setForm(f => ({ ...f, tags: newTags }));
-      toast.success(`Added ${suggested.length} AI-suggested tags!`, { icon: '🏷️' });
-    } catch {
-      toast.error('Failed to suggest tags');
-    } finally {
-      setAiLoading(l => ({ ...l, tags: false }));
-    }
+      setForm(f => ({ ...f, tags: [...new Set([...f.tags, ...suggested])] }));
+      toast.success(`${suggested.length} tags suggested`);
+    } catch { toast.error('Tag suggestion failed'); }
+    finally { setAiLoading(l => ({ ...l, tags: false })); }
   };
 
   const handleAIGenerateTitle = async () => {
-    if (!form.promptText.trim()) return toast.error('Enter a prompt first');
+    if (!form.promptText.trim()) return toast.error('Enter prompt text first');
     setAiLoading(l => ({ ...l, title: true }));
     try {
       const title = await generateTitle({ promptText: form.promptText });
       setForm(f => ({ ...f, title }));
-      toast.success('Title generated!', { icon: '✨' });
-    } catch {
-      toast.error('Failed to generate title');
-    } finally {
-      setAiLoading(l => ({ ...l, title: false }));
-    }
+      toast.success('Title generated');
+    } catch { toast.error('Title generation failed'); }
+    finally { setAiLoading(l => ({ ...l, title: false })); }
   };
-
-  const MiniSpinner = () => (
-    <span className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin inline-block" />
-  );
 
   if (!isOpen) return null;
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-2xl bg-obsidian-800 border border-obsidian-600 rounded-2xl shadow-2xl animate-slide-up max-h-[90vh] flex flex-col">
+  const isEditing = !!initialData?.title;
 
+  return (
+    <div className="modal-overlay-pv" onClick={onClose}>
+      <div className="modal-pv" style={{ maxWidth: '680px' }} onClick={e => e.stopPropagation()}>
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-obsidian-700">
-          <h2 className="font-display font-bold text-white text-lg">
-            {initialData?.promptText ? (initialData.title ? 'Edit Prompt' : 'New Prompt from AI') : initialData ? 'Edit Prompt' : 'New Prompt'}
-          </h2>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-obsidian-700 text-gray-400 hover:text-white transition-colors">
-            <X size={18} />
-          </button>
+        <div className="modal-header-pv">
+          <h2 className="modal-title-pv">{isEditing ? 'Edit prompt' : 'New prompt'}</h2>
+          <button className="icon-btn-pv" onClick={onClose}><X size={16} /></button>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-          {/* Title */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-gray-400 text-xs font-body">Title <span className="text-red-400">*</span></label>
-              <button
-                type="button"
-                onClick={handleAIGenerateTitle}
-                disabled={aiLoading.title}
-                className="flex items-center gap-1 text-xs text-neon-purple hover:text-purple-300 font-body transition-colors disabled:opacity-50"
-              >
-                {aiLoading.title ? <MiniSpinner /> : <Sparkles size={11} />}
-                AI title
-              </button>
-            </div>
-            <input
-              value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
-              className={`input-field ${errors.title ? 'border-red-500' : ''}`}
-              placeholder="E.g. React code reviewer..."
-            />
-            {errors.title && <p className="text-red-400 text-xs mt-1">{errors.title}</p>}
-          </div>
+        {/* Body */}
+        <form onSubmit={handleSubmit}>
+          <div className="modal-body-pv" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-          {/* Category + AI Tool */}
-          <div className="grid grid-cols-2 gap-3">
+            {/* Title */}
             <div>
-              <label className="block text-gray-400 text-xs font-body mb-1.5">Category</label>
-              <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="input-field">
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-gray-400 text-xs font-body mb-1.5">AI Tool</label>
-              <select value={form.aiTool} onChange={e => setForm(f => ({ ...f, aiTool: e.target.value }))} className="input-field">
-                {AI_TOOLS.map(t => <option key={t} value={t}>{t}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* Prompt Text */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-gray-400 text-xs font-body">Prompt Text <span className="text-red-400">*</span></label>
-              <button
-                type="button"
-                onClick={handleAIImprove}
-                disabled={aiLoading.improve}
-                className="flex items-center gap-1.5 text-xs bg-neon-blue/10 border border-neon-blue/30 text-neon-blue hover:bg-neon-blue/20 px-2.5 py-1 rounded-lg font-body transition-all disabled:opacity-50"
-              >
-                {aiLoading.improve ? <MiniSpinner /> : <Wand2 size={11} />}
-                {aiLoading.improve ? 'Improving...' : 'AI Improve'}
-              </button>
-            </div>
-            <textarea
-              value={form.promptText}
-              onChange={e => setForm(f => ({ ...f, promptText: e.target.value }))}
-              rows={6}
-              className={`input-field resize-none font-mono text-xs leading-relaxed ${errors.promptText ? 'border-red-500' : ''}`}
-              placeholder="Enter your AI prompt here..."
-            />
-            <div className="flex justify-between mt-1">
-              {errors.promptText ? <p className="text-red-400 text-xs">{errors.promptText}</p> : <span />}
-              <span className="text-gray-600 text-xs">{form.promptText.length}/10000</span>
-            </div>
-          </div>
-
-          {/* Tags */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-gray-400 text-xs font-body">Tags</label>
-              <button
-                type="button"
-                onClick={handleAISuggestTags}
-                disabled={aiLoading.tags}
-                className="flex items-center gap-1 text-xs text-neon-purple hover:text-purple-300 font-body transition-colors disabled:opacity-50"
-              >
-                {aiLoading.tags ? <MiniSpinner /> : <Sparkles size={11} />}
-                AI suggest tags
-              </button>
-            </div>
-            <div className="flex gap-2">
-              <input
-                value={tagInput}
-                onChange={e => setTagInput(e.target.value)}
-                onKeyDown={handleTagKeyDown}
-                className="input-field flex-1"
-                placeholder="Add tag (press Enter or comma)"
-              />
-              <button type="button" onClick={addTag} className="btn-secondary px-3">
-                <Plus size={16} />
-              </button>
-            </div>
-            {form.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                {form.tags.map(tag => (
-                  <span key={tag} className="inline-flex items-center gap-1 badge bg-obsidian-700 text-gray-300 border border-obsidian-500 text-xs">
-                    <Tag size={10} />#{tag}
-                    <button type="button" onClick={() => removeTag(tag)} className="ml-0.5 text-gray-500 hover:text-red-400">×</button>
-                  </span>
-                ))}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                <label className="form-label-pv">Title <span style={{ color: 'var(--accent)' }}>*</span></label>
+                <button
+                  type="button"
+                  onClick={handleAIGenerateTitle}
+                  disabled={aiLoading.title}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--amber)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--f-sans)' }}
+                >
+                  {aiLoading.title ? <MiniSpinner dark /> : <Sparkles size={11} />}
+                  Generate title
+                </button>
               </div>
-            )}
+              <input
+                value={form.title}
+                onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+                className="input-pv"
+                placeholder="Give your prompt a descriptive name…"
+                style={{ borderColor: errors.title ? 'var(--accent)' : undefined }}
+              />
+              {errors.title && <p style={{ fontSize: '12px', color: 'var(--accent)', marginTop: '4px' }}>{errors.title}</p>}
+            </div>
+
+            {/* Category + AI Tool */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label className="form-label-pv">Category</label>
+                <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} className="select-pv" style={{ width: '100%' }}>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="form-label-pv">AI Tool</label>
+                <select value={form.aiTool} onChange={e => setForm(f => ({ ...f, aiTool: e.target.value }))} className="select-pv" style={{ width: '100%' }}>
+                  {AI_TOOLS.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+            </div>
+
+            {/* Prompt Text */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                <label className="form-label-pv">Prompt text <span style={{ color: 'var(--accent)' }}>*</span></label>
+                <button
+                  type="button"
+                  onClick={handleAIImprove}
+                  disabled={aiLoading.improve}
+                  className="btn-ai-pv"
+                  style={{ padding: '4px 10px', fontSize: '12px' }}
+                >
+                  {aiLoading.improve ? <MiniSpinner dark /> : <Wand2 size={11} />}
+                  {aiLoading.improve ? 'Improving…' : 'AI improve'}
+                </button>
+              </div>
+              <textarea
+                value={form.promptText}
+                onChange={e => setForm(f => ({ ...f, promptText: e.target.value }))}
+                rows={7}
+                className="textarea-pv"
+                placeholder="Write or paste your prompt here…"
+                style={{ fontFamily: 'var(--f-mono)', fontSize: '13px', borderColor: errors.promptText ? 'var(--accent)' : undefined }}
+              />
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4px' }}>
+                {errors.promptText
+                  ? <p style={{ fontSize: '12px', color: 'var(--accent)' }}>{errors.promptText}</p>
+                  : <span />
+                }
+                <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)' }}>
+                  {form.promptText.length}/10000
+                </span>
+              </div>
+            </div>
+
+            {/* Tags */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '5px' }}>
+                <label className="form-label-pv">Tags</label>
+                <button
+                  type="button"
+                  onClick={handleAISuggestTags}
+                  disabled={aiLoading.tags}
+                  style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: 'var(--amber)', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'var(--f-sans)' }}
+                >
+                  {aiLoading.tags ? <MiniSpinner dark /> : <Sparkles size={11} />}
+                  Suggest tags
+                </button>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input
+                  value={tagInput}
+                  onChange={e => setTagInput(e.target.value)}
+                  onKeyDown={handleTagKeyDown}
+                  className="input-pv"
+                  placeholder="Add tag — press Enter or comma"
+                />
+                <button type="button" onClick={addTag} className="btn-pv" style={{ flexShrink: 0 }}>
+                  <Plus size={14} />
+                </button>
+              </div>
+              {form.tags.length > 0 && (
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '8px' }}>
+                  {form.tags.map(tag => (
+                    <span
+                      key={tag}
+                      className="tag-pv"
+                      style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                    >
+                      #{tag}
+                      <button
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', fontSize: '12px', padding: '0 1px', lineHeight: 1, display: 'flex', alignItems: 'center' }}
+                      >
+                        <X size={10} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="modal-footer-pv">
+            <button type="button" className="btn-pv" onClick={onClose}>Cancel</button>
+            <button
+              type="submit"
+              onClick={handleSubmit}
+              className="btn-pv btn-primary-pv"
+              disabled={loading}
+              style={{ minWidth: '120px', justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              {loading ? <MiniSpinner /> : null}
+              {loading ? 'Saving…' : isEditing ? 'Update prompt' : 'Create prompt'}
+            </button>
           </div>
         </form>
-
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-obsidian-700">
-          <button type="button" onClick={onClose} className="btn-secondary">Cancel</button>
-          <button onClick={handleSubmit} disabled={loading} className="btn-primary min-w-[100px]">
-            {loading ? (
-              <span className="flex items-center gap-2 justify-center">
-                <span className="w-4 h-4 border-2 border-obsidian-950/30 border-t-obsidian-950 rounded-full animate-spin" />
-                Saving...
-              </span>
-            ) : initialData?.title ? 'Update Prompt' : 'Create Prompt'}
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -1,90 +1,112 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Zap, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Zap, AlertCircle } from 'lucide-react';
+import { MiniSpinner } from '../components/common/Spinner';
+import ThemeToggle from '../components/common/ThemeToggle';
 
 const Login = () => {
   const [form, setForm] = useState({ email: '', password: '' });
-  const [showPassword, setShowPassword] = useState(false);
-  const { login, loading } = useAuth();
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState('');
+  const { login, loading, user } = useAuth();
   const navigate = useNavigate();
+
+  // Already authenticated — skip the login page
+  if (user) return <Navigate to="/dashboard" replace />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await login(form);
-    if (result.success) navigate('/dashboard');
+    setError('');
+    const res = await login(form);
+    if (res.success) {
+      navigate('/dashboard', { replace: true });
+    } else {
+      setError(res.message || 'Invalid email or password');
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
-      {/* Background effects */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-neon-blue/5 blur-3xl" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-neon-purple/5 blur-3xl" />
+    <div style={{ minHeight: '100vh', background: 'var(--bg-base)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', position: 'relative' }}>
+      <div style={{ position: 'fixed', top: '18px', right: '20px' }}>
+        <ThemeToggle />
       </div>
 
-      <div className="w-full max-w-md relative z-10 animate-slide-up">
+      <div style={{ position: 'fixed', inset: 0, backgroundImage: 'radial-gradient(ellipse at 25% 25%, var(--accent-subtle) 0%, transparent 55%), radial-gradient(ellipse at 75% 75%, var(--sage-subtle) 0%, transparent 55%)', pointerEvents: 'none' }} />
+
+      <div style={{ width: '100%', maxWidth: '400px', position: 'relative', zIndex: 1 }} className="animate-slide-up">
         {/* Logo */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center mb-3 shadow-lg shadow-neon-blue/20">
-            <Zap size={22} className="text-white" />
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+            <div className="logo-icon-pv"><Zap size={14} color="white" /></div>
+            <span style={{ fontFamily: 'var(--f-serif)', fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>PromptVault</span>
           </div>
-          <h1 className="font-display font-bold text-white text-2xl">PromptVault</h1>
-          <p className="text-gray-500 font-body text-sm mt-1">Welcome back</p>
+          <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11.5px', color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}>Welcome back</p>
         </div>
 
-        {/* Card */}
-        <div className="card p-6 border-obsidian-600">
-          <h2 className="font-display font-bold text-white text-xl mb-1">Sign in</h2>
-          <p className="text-gray-500 font-body text-sm mb-6">Enter your credentials to continue</p>
+        <div className="card-pv" style={{ padding: '32px' }}>
+          <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: '24px', color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '5px' }}>Sign in</h2>
+          <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '24px' }}>Enter your credentials to continue</p>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Inline error banner */}
+          {error && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: 'var(--accent-subtle)', border: '1px solid var(--accent-border)', borderRadius: 'var(--r-sm)', marginBottom: '16px' }}>
+              <AlertCircle size={14} color="var(--accent)" style={{ flexShrink: 0 }} />
+              <p style={{ fontSize: '13px', color: 'var(--accent)', margin: 0 }}>{error}</p>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div>
-              <label className="block text-gray-400 text-xs font-body mb-1.5">Email</label>
+              <label className="form-label-pv">Email</label>
               <input
                 type="email"
                 value={form.email}
-                onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                className="input-field"
+                onChange={e => { setForm(f => ({ ...f, email: e.target.value })); setError(''); }}
+                className="input-pv"
                 placeholder="you@example.com"
+                autoComplete="email"
                 required
               />
             </div>
-
             <div>
-              <label className="block text-gray-400 text-xs font-body mb-1.5">Password</label>
-              <div className="relative">
+              <label className="form-label-pv">Password</label>
+              <div style={{ position: 'relative' }}>
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPw ? 'text' : 'password'}
                   value={form.password}
-                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  className="input-field pr-10"
+                  onChange={e => { setForm(f => ({ ...f, password: e.target.value })); setError(''); }}
+                  className="input-pv"
                   placeholder="••••••••"
+                  style={{ paddingRight: '40px' }}
+                  autoComplete="current-password"
                   required
                 />
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300"
+                  onClick={() => setShowPw(v => !v)}
+                  style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex' }}
                 >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                  {showPw ? <EyeOff size={15} /> : <Eye size={15} />}
                 </button>
               </div>
             </div>
 
-            <button type="submit" disabled={loading} className="btn-primary w-full text-center justify-center">
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="w-4 h-4 border-2 border-obsidian-950/30 border-t-obsidian-950 rounded-full animate-spin" />
-                  Signing in...
-                </span>
-              ) : 'Sign in'}
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-pv btn-primary-pv"
+              style={{ justifyContent: 'center', display: 'flex', gap: '7px', padding: '10px', marginTop: '4px' }}
+            >
+              {loading ? <><MiniSpinner /> Signing in…</> : 'Sign in'}
             </button>
           </form>
 
-          <p className="text-gray-500 text-sm font-body mt-4 text-center">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-neon-blue hover:underline font-medium">Create one</Link>
+          <p style={{ fontSize: '13.5px', color: 'var(--text-tertiary)', textAlign: 'center', marginTop: '20px' }}>
+            No account?{' '}
+            <Link to="/register" style={{ color: 'var(--accent)', textDecoration: 'none', fontWeight: 500 }}>
+              Create one
+            </Link>
           </p>
         </div>
       </div>

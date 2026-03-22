@@ -28,7 +28,6 @@ const Prompts = () => {
   const [editingPrompt, setEditingPrompt] = useState(null);
   const [viewingPrompt, setViewingPrompt] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
-  // Pre-fill data from AI generator
   const [aiPrefill, setAiPrefill] = useState(null);
 
   const load = useCallback(() => {
@@ -65,7 +64,6 @@ const Prompts = () => {
     }
   };
 
-  // When AI generates a prompt, open the form pre-filled
   const handleAIGenerated = (data) => {
     setEditingPrompt(null);
     setAiPrefill(data);
@@ -77,114 +75,123 @@ const Prompts = () => {
 
   return (
     <DashboardLayout title="Prompts">
-      <div className="flex items-center justify-between mb-5 flex-wrap gap-3">
-        <div className="flex items-center gap-3 flex-wrap">
-          <span className="text-gray-500 font-body text-sm">
+      {/* Toolbar */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <span style={{ fontFamily: 'var(--f-mono)', fontSize: '12.5px', color: 'var(--text-tertiary)' }}>
             {prompts.length} result{prompts.length !== 1 ? 's' : ''}
-            {activeFiltersCount > 0 && <span className="text-neon-blue ml-1">({activeFiltersCount} filter{activeFiltersCount > 1 ? 's' : ''} active)</span>}
+            {activeFiltersCount > 0 && <span style={{ color: 'var(--accent)', marginLeft: '6px' }}>· {activeFiltersCount} filter{activeFiltersCount > 1 ? 's' : ''} active</span>}
           </span>
           <button
             onClick={() => setShowAnalytics(!showAnalytics)}
-            className={`flex items-center gap-1.5 btn-secondary text-xs py-1.5 ${showAnalytics ? 'border-neon-blue/40 text-neon-blue' : ''}`}
+            className="btn-pv btn-ghost-pv"
+            style={{ fontSize: '12.5px', gap: '5px', color: showAnalytics ? 'var(--accent)' : undefined }}
           >
-            <BarChart2 size={13} /> {showAnalytics ? 'Hide' : 'Show'} Analytics
+            <BarChart2 size={13} /> {showAnalytics ? 'Hide' : 'Show'} analytics
           </button>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <ViewToggle mode={viewMode} onChange={setViewMode} />
-          {/* AI Generator Button */}
-          <button
-            onClick={() => setShowAI(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-neon-blue/20 to-neon-purple/20 border border-neon-blue/40 hover:border-neon-blue/70 text-neon-blue font-body font-semibold text-sm px-4 py-2.5 rounded-lg transition-all hover:shadow-lg hover:shadow-neon-blue/10"
-          >
-            <Wand2 size={15} className="animate-pulse" /> Generate with AI
+          <button onClick={() => setShowAI(true)} className="btn-ai-pv" style={{ gap: '6px' }}>
+            <Wand2 size={13} /> Generate with AI
           </button>
-          <button onClick={() => { setEditingPrompt(null); setAiPrefill(null); setShowForm(true); }} className="btn-primary flex items-center gap-2">
-            <Plus size={16} /> New Prompt
+          <button
+            onClick={() => { setEditingPrompt(null); setAiPrefill(null); setShowForm(true); }}
+            className="btn-pv btn-primary-pv"
+            style={{ gap: '5px' }}
+          >
+            <Plus size={14} /> New prompt
           </button>
         </div>
       </div>
 
+      {/* Analytics */}
       {showAnalytics && stats.total > 0 && (
-        <div className="mb-5 animate-slide-up">
+        <div style={{ marginBottom: '20px' }} className="animate-slide-up">
           <PromptAnalytics stats={stats} prompts={prompts} />
         </div>
       )}
 
-      <div className="mb-5">
+      {/* Filters */}
+      <div style={{ marginBottom: '14px' }}>
         <SearchFilter filters={filters} onFilterChange={handleFilterChange} onReset={() => setFilters(defaultFilters)} />
       </div>
 
+      {/* Active filter chips */}
       {activeFiltersCount > 0 && (
-        <div className="flex flex-wrap gap-2 mb-4">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '16px' }}>
           {filters.category && (
-            <span className="inline-flex items-center gap-1 badge bg-obsidian-700 text-gray-300 border border-obsidian-500 text-xs">
+            <span className="tag-pv" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               Category: {filters.category}
-              <button onClick={() => handleFilterChange('category', '')} className="ml-1 hover:text-red-400"><X size={11} /></button>
+              <button onClick={() => handleFilterChange('category', '')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex', lineHeight: 1, padding: '0 1px' }}>
+                <X size={10} />
+              </button>
             </span>
           )}
           {filters.aiTool && (
-            <span className="inline-flex items-center gap-1 badge bg-obsidian-700 text-gray-300 border border-obsidian-500 text-xs">
+            <span className="tag-pv" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               Tool: {filters.aiTool}
-              <button onClick={() => handleFilterChange('aiTool', '')} className="ml-1 hover:text-red-400"><X size={11} /></button>
+              <button onClick={() => handleFilterChange('aiTool', '')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex', lineHeight: 1, padding: '0 1px' }}>
+                <X size={10} />
+              </button>
             </span>
           )}
           {filters.sort !== 'newest' && (
-            <span className="inline-flex items-center gap-1 badge bg-obsidian-700 text-gray-300 border border-obsidian-500 text-xs">
+            <span className="tag-pv" style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
               Sort: {filters.sort}
-              <button onClick={() => handleFilterChange('sort', 'newest')} className="ml-1 hover:text-red-400"><X size={11} /></button>
+              <button onClick={() => handleFilterChange('sort', 'newest')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex', lineHeight: 1, padding: '0 1px' }}>
+                <X size={10} />
+              </button>
             </span>
           )}
         </div>
       )}
 
+      {/* Content */}
       {loading ? (
-        <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '60px' }}>
+          <Spinner size="lg" />
+        </div>
       ) : prompts.length === 0 ? (
-        <div className="card p-16 text-center">
-          <Sparkles size={40} className="text-gray-600 mx-auto mb-4" />
-          <h3 className="font-display font-semibold text-white text-lg mb-2">
-            {activeFiltersCount > 0 ? 'No matching prompts' : 'No prompts yet'}
-          </h3>
-          <p className="text-gray-500 font-body text-sm mb-5">
+        <div className="empty-state-pv">
+          <div className="empty-icon-pv"><Sparkles size={22} /></div>
+          <div className="empty-title-pv">{activeFiltersCount > 0 ? 'No matching prompts' : 'No prompts yet'}</div>
+          <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '20px' }}>
             {activeFiltersCount > 0 ? 'Try adjusting your search or filters' : 'Generate your first AI prompt or create one manually'}
           </p>
           {activeFiltersCount > 0 ? (
-            <button onClick={() => setFilters(defaultFilters)} className="btn-secondary inline-flex items-center gap-2"><X size={14} /> Clear filters</button>
+            <button onClick={() => setFilters(defaultFilters)} className="btn-pv" style={{ gap: '5px' }}>
+              <X size={13} /> Clear filters
+            </button>
           ) : (
-            <div className="flex gap-3 justify-center">
-              <button onClick={() => setShowAI(true)} className="flex items-center gap-2 bg-gradient-to-r from-neon-blue/20 to-neon-purple/20 border border-neon-blue/40 text-neon-blue font-semibold text-sm px-5 py-2.5 rounded-lg">
-                <Wand2 size={15} /> Generate with AI
-              </button>
-              <button onClick={() => { setEditingPrompt(null); setAiPrefill(null); setShowForm(true); }} className="btn-primary inline-flex items-center gap-2"><Plus size={16} /> Create Manually</button>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+              <button onClick={() => setShowAI(true)} className="btn-ai-pv" style={{ gap: '6px' }}><Wand2 size={13} /> Generate with AI</button>
+              <button onClick={() => { setEditingPrompt(null); setAiPrefill(null); setShowForm(true); }} className="btn-pv btn-primary-pv" style={{ gap: '5px' }}><Plus size={13} /> Create manually</button>
             </div>
           )}
         </div>
       ) : viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {prompts.map(prompt => (
-            <PromptCard key={prompt._id} prompt={prompt} onEdit={handleEdit} onDelete={setDeleteId}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '14px' }}>
+          {prompts.map(p => (
+            <PromptCard key={p._id} prompt={p} onEdit={handleEdit} onDelete={setDeleteId}
               onToggleFavorite={handleToggleFavorite} onDuplicate={duplicatePrompt} onView={setViewingPrompt} />
           ))}
         </div>
       ) : (
-        <div className="space-y-2">
-          {prompts.map(prompt => (
-            <PromptListItem key={prompt._id} prompt={prompt} onEdit={handleEdit} onDelete={setDeleteId}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {prompts.map(p => (
+            <PromptListItem key={p._id} prompt={p} onEdit={handleEdit} onDelete={setDeleteId}
               onToggleFavorite={handleToggleFavorite} onDuplicate={duplicatePrompt} onView={setViewingPrompt} />
           ))}
         </div>
       )}
 
       <AIGeneratorModal isOpen={showAI} onClose={() => setShowAI(false)} onUse={handleAIGenerated} />
-
       <PromptDetail prompt={viewingPrompt} isOpen={!!viewingPrompt} onClose={() => setViewingPrompt(null)}
         onEdit={handleEdit} onToggleFavorite={handleToggleFavorite} onDuplicate={duplicatePrompt} />
-
       <PromptForm isOpen={showForm} onClose={() => { setShowForm(false); setEditingPrompt(null); setAiPrefill(null); }}
         onSubmit={handleFormSubmit} initialData={editingPrompt || aiPrefill} loading={actionLoading} />
-
       <DeleteConfirm isOpen={!!deleteId} onClose={() => setDeleteId(null)}
         onConfirm={handleDeleteConfirm} loading={actionLoading} />
     </DashboardLayout>

@@ -5,95 +5,110 @@ import { CATEGORY_COLORS, AI_TOOL_COLORS } from '../../utils/constants';
 
 const PromptCard = ({ prompt, onEdit, onDelete, onToggleFavorite, onDuplicate, onView }) => {
   const [showMenu, setShowMenu] = useState(false);
-  const [favoriteLoading, setFavoriteLoading] = useState(false);
+  const [favLoading, setFavLoading] = useState(false);
 
-  const catColors = CATEGORY_COLORS[prompt.category] || CATEGORY_COLORS.Other;
-  const toolColor = AI_TOOL_COLORS[prompt.aiTool] || AI_TOOL_COLORS.Other;
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(prompt.promptText);
-      toast.success('Copied to clipboard!', { icon: '📋' });
-    } catch {
-      toast.error('Failed to copy');
-    }
+  const handleCopy = async (e) => {
+    e?.stopPropagation();
+    await navigator.clipboard.writeText(prompt.promptText);
+    toast.success('Copied to clipboard');
   };
 
-  const handleFavorite = async () => {
-    setFavoriteLoading(true);
+  const handleFavorite = async (e) => {
+    e.stopPropagation();
+    setFavLoading(true);
     await onToggleFavorite(prompt._id);
-    setFavoriteLoading(false);
+    setFavLoading(false);
   };
 
-  const truncateText = (text, maxLen = 120) =>
-    text.length > maxLen ? text.slice(0, maxLen) + '...' : text;
+  const truncate = (text, max = 120) =>
+    text.length > max ? text.slice(0, max) + '…' : text;
 
   return (
-    <div className="card-hover p-4 group animate-slide-up relative" onClick={() => onView && onView(prompt)}>
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="font-display font-semibold text-white text-sm leading-snug truncate group-hover:text-neon-blue transition-colors">
-            {prompt.title}
-          </h3>
-          <div className="flex items-center gap-2 mt-1.5">
-            <span className={`badge ${catColors.bg} ${catColors.text} ${catColors.border} border`}>
-              <span className={`w-1.5 h-1.5 rounded-full ${catColors.dot} mr-1.5`} />
-              {prompt.category}
-            </span>
-            <span className={`font-mono text-xs ${toolColor}`}>{prompt.aiTool}</span>
-          </div>
+    <div
+      className="prompt-card-pv animate-slide-up"
+      onClick={() => onView?.(prompt)}
+    >
+      {/* Header row */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span className={`cat-pill-pv cat-${prompt.category}`}>
+            <span className="cat-dot-pv" />
+            {prompt.category}
+          </span>
+          <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)' }}>
+            {prompt.aiTool}
+          </span>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+        <div
+          style={{ display: 'flex', alignItems: 'center', gap: '2px', flexShrink: 0 }}
+          onClick={e => e.stopPropagation()}
+        >
           <button
+            className={`icon-btn-pv ${prompt.isFavorite ? '' : ''}`}
             onClick={handleFavorite}
-            disabled={favoriteLoading}
-            className="p-1.5 rounded-lg hover:bg-obsidian-600 transition-all"
-            title={prompt.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
+            disabled={favLoading}
+            title={prompt.isFavorite ? 'Remove favorite' : 'Add favorite'}
+            style={{ color: prompt.isFavorite ? 'var(--accent)' : undefined }}
           >
-            <Heart
-              size={15}
-              className={prompt.isFavorite ? 'fill-red-400 text-red-400' : 'text-gray-500 hover:text-red-400'}
-            />
+            <Heart size={14} fill={prompt.isFavorite ? 'currentColor' : 'none'} />
           </button>
 
-          <div className="relative">
+          <div style={{ position: 'relative' }}>
             <button
+              className="icon-btn-pv"
               onClick={() => setShowMenu(!showMenu)}
-              className="p-1.5 rounded-lg hover:bg-obsidian-600 transition-all text-gray-500 hover:text-white"
+              title="More options"
             >
-              <MoreVertical size={15} />
+              <MoreVertical size={14} />
             </button>
 
             {showMenu && (
               <>
-                <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 top-8 z-20 bg-obsidian-700 border border-obsidian-500 rounded-lg py-1 min-w-[150px] shadow-xl animate-fade-in">
-                  <button
-                    onClick={() => { onEdit(prompt); setShowMenu(false); }}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-300 hover:bg-obsidian-600 hover:text-white transition-colors"
-                  >
-                    <Edit2 size={14} /> Edit
-                  </button>
-                  <button
-                    onClick={() => { onDuplicate(prompt._id); setShowMenu(false); }}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-300 hover:bg-obsidian-600 hover:text-white transition-colors"
-                  >
-                    <Duplicate size={14} /> Duplicate
-                  </button>
-                  <button
-                    onClick={handleCopy}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-gray-300 hover:bg-obsidian-600 hover:text-white transition-colors"
-                  >
-                    <Copy size={14} /> Copy Text
-                  </button>
-                  <div className="border-t border-obsidian-500 my-1" />
+                <div style={{ position: 'fixed', inset: 0, zIndex: 10 }} onClick={() => setShowMenu(false)} />
+                <div style={{
+                  position: 'absolute', right: 0, top: '32px', zIndex: 20,
+                  background: 'var(--bg-surface)', border: '1px solid var(--border)',
+                  borderRadius: 'var(--r-md)', padding: '4px', minWidth: '160px',
+                  boxShadow: 'var(--shadow-md)', animation: 'fadeIn 0.15s ease',
+                }}>
+                  {[
+                    { label: 'Edit', icon: Edit2, action: () => { onEdit(prompt); setShowMenu(false); } },
+                    { label: 'Duplicate', icon: Duplicate, action: () => { onDuplicate(prompt._id); setShowMenu(false); } },
+                    { label: 'Copy text', icon: Copy, action: (e) => { handleCopy(); setShowMenu(false); } },
+                  ].map(({ label, icon: Icon, action }) => (
+                    <button
+                      key={label}
+                      onClick={action}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        width: '100%', padding: '8px 10px', background: 'none', border: 'none',
+                        borderRadius: 'var(--r-sm)', fontSize: '13px', color: 'var(--text-secondary)',
+                        cursor: 'pointer', fontFamily: 'var(--f-sans)',
+                        transition: 'background 0.12s',
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = 'var(--bg-base)'}
+                      onMouseLeave={e => e.currentTarget.style.background = 'none'}
+                    >
+                      <Icon size={13} color="var(--text-tertiary)" />
+                      {label}
+                    </button>
+                  ))}
+                  <div style={{ borderTop: '1px solid var(--border)', margin: '4px 0' }} />
                   <button
                     onClick={() => { onDelete(prompt._id); setShowMenu(false); }}
-                    className="flex items-center gap-2 w-full px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '8px',
+                      width: '100%', padding: '8px 10px', background: 'none', border: 'none',
+                      borderRadius: 'var(--r-sm)', fontSize: '13px', color: 'var(--accent)',
+                      cursor: 'pointer', fontFamily: 'var(--f-sans)',
+                      transition: 'background 0.12s',
+                    }}
+                    onMouseEnter={e => e.currentTarget.style.background = 'var(--accent-subtle)'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'none'}
                   >
-                    <Trash2 size={14} /> Delete
+                    <Trash2 size={13} />
+                    Delete
                   </button>
                 </div>
               </>
@@ -102,33 +117,39 @@ const PromptCard = ({ prompt, onEdit, onDelete, onToggleFavorite, onDuplicate, o
         </div>
       </div>
 
-      {/* Prompt Preview */}
-      <p className="text-gray-500 text-xs font-mono leading-relaxed mb-3 bg-obsidian-900 rounded-lg p-2.5 border border-obsidian-700">
-        {truncateText(prompt.promptText)}
-      </p>
+      {/* Title */}
+      <div style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.35, letterSpacing: '-0.01em' }}>
+        {prompt.title}
+      </div>
+
+      {/* Text preview */}
+      <div className="prompt-preview-pv">
+        {truncate(prompt.promptText)}
+      </div>
 
       {/* Tags */}
-      {prompt.tags && prompt.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1 mb-3">
-          {prompt.tags.slice(0, 4).map((tag) => (
-            <span key={tag} className="badge bg-obsidian-700 text-gray-400 text-xs">#{tag}</span>
+      {prompt.tags?.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+          {prompt.tags.slice(0, 4).map(tag => (
+            <span key={tag} className="tag-pv">#{tag}</span>
           ))}
           {prompt.tags.length > 4 && (
-            <span className="badge bg-obsidian-700 text-gray-500 text-xs">+{prompt.tags.length - 4}</span>
+            <span className="tag-pv">+{prompt.tags.length - 4}</span>
           )}
         </div>
       )}
 
       {/* Footer */}
-      <div className="flex items-center justify-between">
-        <span className="text-gray-600 text-xs font-mono">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingTop: '10px', borderTop: '1px solid var(--border)', marginTop: 'auto' }}>
+        <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11.5px', color: 'var(--text-tertiary)' }}>
           {new Date(prompt.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
         </span>
         <button
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-neon-blue transition-colors font-body"
+          className="icon-btn-pv"
+          onClick={e => { e.stopPropagation(); handleCopy(); }}
+          title="Copy prompt"
         >
-          <Copy size={12} /> Copy
+          <Copy size={13} />
         </button>
       </div>
     </div>

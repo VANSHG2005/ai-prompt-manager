@@ -1,24 +1,50 @@
-import { AlertTriangle } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 const DeleteConfirm = ({ isOpen, onClose, onConfirm, loading }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-obsidian-800 border border-obsidian-600 rounded-2xl p-6 w-full max-w-sm shadow-2xl animate-slide-up">
-        <div className="flex flex-col items-center text-center">
-          <div className="w-12 h-12 rounded-full bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-4">
-            <AlertTriangle size={22} className="text-red-400" />
+    <div className="modal-overlay-pv" onClick={onClose}>
+      <div
+        className="modal-pv"
+        style={{ maxWidth: '380px' }}
+        onClick={e => e.stopPropagation()}
+      >
+        <div style={{ padding: '32px 28px', textAlign: 'center' }}>
+          <div style={{
+            width: '48px', height: '48px',
+            background: 'var(--accent-subtle)',
+            border: '1px solid rgba(200,71,26,0.2)',
+            borderRadius: 'var(--r-md)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            margin: '0 auto 18px',
+          }}>
+            <Trash2 size={20} color="var(--accent)" />
           </div>
-          <h3 className="font-display font-bold text-white text-lg mb-2">Delete Prompt</h3>
-          <p className="text-gray-400 font-body text-sm mb-6">
-            This action cannot be undone. The prompt will be permanently deleted.
+
+          <h3 style={{ fontFamily: 'var(--f-serif)', fontSize: '22px', color: 'var(--text-primary)', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+            Delete prompt?
+          </h3>
+          <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', lineHeight: 1.6, marginBottom: '28px' }}>
+            This action is permanent. The prompt and all its version history will be removed.
           </p>
-          <div className="flex gap-3 w-full">
-            <button onClick={onClose} className="btn-secondary flex-1">Cancel</button>
-            <button onClick={onConfirm} disabled={loading} className="btn-danger flex-1">
-              {loading ? 'Deleting...' : 'Delete'}
+
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="btn-pv" style={{ flex: 1, justifyContent: 'center' }} onClick={onClose}>
+              Cancel
+            </button>
+            <button
+              className="btn-pv btn-danger-pv"
+              style={{ flex: 1, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '6px' }}
+              onClick={onConfirm}
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="mini-spinner-pv" style={{ borderTopColor: 'var(--accent)' }} />
+              ) : (
+                <Trash2 size={13} />
+              )}
+              {loading ? 'Deleting…' : 'Delete forever'}
             </button>
           </div>
         </div>

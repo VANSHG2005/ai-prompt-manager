@@ -1,160 +1,79 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import {
-  Zap, Sparkles, Heart, Search, Copy, Tag, Shield, ArrowRight,
-  Star, ChevronRight, Code2, Pen, Image, Video, TrendingUp, Globe,
-  CheckCircle, Github, Twitter, Menu, X, Bot, Layers, Clock
-} from 'lucide-react';
-
-// Animated floating orbs background
-const ParticleField = () => {
-  const canvasRef = useRef(null);
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    let animId;
-    const resize = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
-    resize();
-    window.addEventListener('resize', resize);
-
-    const particles = Array.from({ length: 60 }, () => ({
-      x: Math.random() * canvas.width,
-      y: Math.random() * canvas.height,
-      r: Math.random() * 1.5 + 0.3,
-      dx: (Math.random() - 0.5) * 0.3,
-      dy: (Math.random() - 0.5) * 0.3,
-      opacity: Math.random() * 0.5 + 0.1,
-    }));
-
-    const draw = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => {
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(88,166,255,${p.opacity})`;
-        ctx.fill();
-        p.x += p.dx; p.y += p.dy;
-        if (p.x < 0 || p.x > canvas.width) p.dx *= -1;
-        if (p.y < 0 || p.y > canvas.height) p.dy *= -1;
-      });
-      // Draw faint connections
-      particles.forEach((a, i) => {
-        particles.slice(i + 1).forEach(b => {
-          const dist = Math.hypot(a.x - b.x, a.y - b.y);
-          if (dist < 120) {
-            ctx.beginPath();
-            ctx.moveTo(a.x, a.y);
-            ctx.lineTo(b.x, b.y);
-            ctx.strokeStyle = `rgba(88,166,255,${0.05 * (1 - dist / 120)})`;
-            ctx.lineWidth = 0.5;
-            ctx.stroke();
-          }
-        });
-      });
-      animId = requestAnimationFrame(draw);
-    };
-    draw();
-    return () => { cancelAnimationFrame(animId); window.removeEventListener('resize', resize); };
-  }, []);
-  return <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-0" />;
-};
+import { Zap, Sparkles, Heart, Search, Copy, Tag, Shield, ArrowRight, Star, Code2, Pen, Image, Video, TrendingUp, Globe, Bot, Layers, Clock } from 'lucide-react';
+import ThemeToggle from '../components/common/ThemeToggle';
 
 const features = [
-  { icon: Sparkles, title: 'Smart Organization', desc: 'Categorize prompts by Coding, Writing, Image, Video, Marketing and more. Find the right prompt instantly.', color: 'from-blue-500/20 to-blue-600/10', accent: 'text-blue-400', border: 'border-blue-500/20' },
-  { icon: Search, title: 'Instant Search', desc: 'Search across title, tags, and categories in real-time. Filter by AI tool, sort by newest or favorites.', color: 'from-emerald-500/20 to-emerald-600/10', accent: 'text-emerald-400', border: 'border-emerald-500/20' },
-  { icon: Copy, title: 'One-Click Copy', desc: 'Copy any prompt to clipboard instantly. No more hunting through docs or chat histories.', color: 'from-purple-500/20 to-purple-600/10', accent: 'text-purple-400', border: 'border-purple-500/20' },
-  { icon: Heart, title: 'Favorites System', desc: 'Star your best prompts. Access your favorites library with a dedicated filtered view.', color: 'from-red-500/20 to-red-600/10', accent: 'text-red-400', border: 'border-red-500/20' },
-  { icon: Tag, title: 'Flexible Tagging', desc: 'Add unlimited custom tags. Build your own taxonomy for rapid discovery across projects.', color: 'from-orange-500/20 to-orange-600/10', accent: 'text-orange-400', border: 'border-orange-500/20' },
-  { icon: Layers, title: 'Duplicate & Remix', desc: 'Clone any prompt as a starting point. Iterate fast without losing the original.', color: 'from-cyan-500/20 to-cyan-600/10', accent: 'text-cyan-400', border: 'border-cyan-500/20' },
-  { icon: Shield, title: 'Secure & Private', desc: 'JWT authentication, bcrypt hashing. Your prompts are yours alone — fully private per account.', color: 'from-yellow-500/20 to-yellow-600/10', accent: 'text-yellow-400', border: 'border-yellow-500/20' },
-  { icon: Bot, title: 'Multi-AI Support', desc: 'Tag prompts for ChatGPT, Claude, Gemini, Midjourney, DALL-E, Stable Diffusion and more.', color: 'from-pink-500/20 to-pink-600/10', accent: 'text-pink-400', border: 'border-pink-500/20' },
-  { icon: TrendingUp, title: 'Usage Analytics', desc: 'Dashboard stats showing total prompts, favorites count, and category breakdowns at a glance.', color: 'from-violet-500/20 to-violet-600/10', accent: 'text-violet-400', border: 'border-violet-500/20' },
-];
-
-const aiTools = [
-  { name: 'ChatGPT', color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-  { name: 'Claude', color: 'text-orange-400', bg: 'bg-orange-400/10' },
-  { name: 'Gemini', color: 'text-blue-400', bg: 'bg-blue-400/10' },
-  { name: 'Midjourney', color: 'text-purple-400', bg: 'bg-purple-400/10' },
-  { name: 'DALL·E', color: 'text-pink-400', bg: 'bg-pink-400/10' },
-  { name: 'Stable Diffusion', color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
+  { icon: Sparkles,    title: 'Smart organisation',    desc: 'Categorise by Coding, Writing, Image, Video, Marketing. Find anything instantly with real-time search.' },
+  { icon: Copy,        title: 'One-click copy',         desc: 'Copy any prompt to clipboard instantly. No more hunting through docs or scattered chat histories.' },
+  { icon: Heart,       title: 'Favourites & ratings',   desc: 'Star your best prompts. Rate them 1–5 stars. Build a shortlist of your highest-performing templates.' },
+  { icon: Tag,         title: 'Flexible tagging',       desc: 'Unlimited custom tags. Build your own taxonomy for rapid discovery across any project.' },
+  { icon: Layers,      title: 'Duplicate & remix',      desc: 'Clone any prompt as a starting point. Iterate fast without losing the original version.' },
+  { icon: Shield,      title: 'Private & secure',       desc: 'JWT auth, bcrypt hashing. Your prompts are yours alone — per-account, never shared.' },
+  { icon: Bot,         title: 'Multi-AI support',       desc: 'Tag prompts for ChatGPT, Claude, Gemini, Midjourney, DALL·E, Stable Diffusion and more.' },
+  { icon: TrendingUp,  title: 'Usage analytics',        desc: 'Dashboard stats: prompt count, favourites, category breakdowns, activity heatmaps.' },
+  { icon: Search,      title: 'AI generation',          desc: 'Generate, improve, and remix prompts using Groq\'s free Llama 3.3 API — right inside the app.' },
 ];
 
 const testimonials = [
-  { name: 'Sarah Chen', role: 'AI Product Designer', avatar: 'SC', text: 'PromptVault changed how I work. I have 200+ prompts organized perfectly. The copy button alone saves me 30 min a day.', rating: 5 },
-  { name: 'Marcus Webb', role: 'Full-Stack Developer', avatar: 'MW', text: 'Finally a tool built for serious prompt engineers. The tagging and search are exactly what I needed for my workflow.', rating: 5 },
-  { name: 'Priya Sharma', role: 'Content Strategist', avatar: 'PS', text: 'I use different AI tools for different tasks. Having everything organized by tool and category is a game changer.', rating: 5 },
+  { name: 'Sarah Chen',   role: 'AI Product Designer',  avatar: 'SC', rating: 5, text: 'PromptVault changed my workflow. 200+ prompts organised perfectly. The one-click copy saves me 30 minutes every day.' },
+  { name: 'Marcus Webb',  role: 'Full-Stack Developer',  avatar: 'MW', rating: 5, text: 'Finally a tool built for serious prompt engineers. The tagging and search are exactly what I needed for my workflow.' },
+  { name: 'Priya Sharma', role: 'Content Strategist',    avatar: 'PS', rating: 5, text: 'I use different AI tools for different tasks. Having everything organised by tool and category is a complete game changer.' },
 ];
 
-const categories = [
-  { icon: Code2, label: 'Coding', color: 'text-blue-400', bg: 'bg-blue-500/10' },
-  { icon: Pen, label: 'Writing', color: 'text-green-400', bg: 'bg-green-500/10' },
-  { icon: Image, label: 'Image', color: 'text-purple-400', bg: 'bg-purple-500/10' },
-  { icon: Video, label: 'Video', color: 'text-orange-400', bg: 'bg-orange-500/10' },
-  { icon: TrendingUp, label: 'Marketing', color: 'text-pink-400', bg: 'bg-pink-500/10' },
-  { icon: Globe, label: 'Other', color: 'text-gray-400', bg: 'bg-gray-500/10' },
-];
+const aiTools = ['ChatGPT', 'Claude', 'Gemini', 'Midjourney', 'DALL·E', 'Stable Diffusion'];
 
-// Fake animated prompt card for hero section
-const AnimatedPromptCard = () => {
+const AnimatedCard = () => {
   const [typed, setTyped] = useState('');
-  const text = 'Review this React component for performance issues, unused state, prop drilling, and suggest refactors using modern hooks patterns...';
+  const text = 'Review this React component for performance issues, unused state, and prop drilling. Suggest refactors using modern hooks and memoisation strategies.';
   useEffect(() => {
     let i = 0;
-    const t = setInterval(() => {
-      setTyped(text.slice(0, i));
-      i++;
-      if (i > text.length) { clearInterval(t); }
-    }, 28);
+    const t = setInterval(() => { setTyped(text.slice(0, i)); i++; if (i > text.length) clearInterval(t); }, 24);
     return () => clearInterval(t);
   }, []);
 
   return (
-    <div className="relative">
-      {/* Glow behind card */}
-      <div className="absolute -inset-4 bg-gradient-to-r from-neon-blue/20 via-neon-purple/10 to-transparent rounded-3xl blur-2xl" />
-      <div className="relative bg-obsidian-800 border border-obsidian-500 rounded-2xl p-5 shadow-2xl">
-        {/* Card header */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-2">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-500" />
-            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500" />
-            <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+    <div style={{ position: 'relative', paddingBottom: '24px', paddingRight: '20px' }}>
+      {/* shadow card */}
+      <div style={{ position: 'absolute', bottom: '0', right: '0', width: '68%', background: 'var(--bg-muted)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '14px 16px', zIndex: 0 }}>
+        <div style={{ height: '8px', background: 'var(--border-strong)', borderRadius: '3px', width: '55%', marginBottom: '6px' }} />
+        <div style={{ height: '6px', background: 'var(--border)', borderRadius: '3px', width: '78%' }} />
+      </div>
+
+      <div style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: 'var(--r-lg)', padding: '22px', boxShadow: 'var(--shadow-lg)', position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <div style={{ display: 'flex', gap: '5px' }}>
+            {['#f87171','#facc15','#4ade80'].map(c => <div key={c} style={{ width: '8px', height: '8px', borderRadius: '50%', background: c }} />)}
           </div>
-          <div className="flex items-center gap-1.5">
-            <span className="badge bg-blue-500/15 text-blue-400 border border-blue-500/30 text-xs">Coding</span>
-            <span className="text-emerald-400 font-mono text-xs">ChatGPT</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className="cat-pill-pv cat-Coding"><span className="cat-dot-pv" />Coding</span>
+            <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)' }}>ChatGPT</span>
           </div>
         </div>
-        <h4 className="font-display font-semibold text-white text-sm mb-2">React Code Reviewer</h4>
-        <div className="bg-obsidian-900 rounded-lg p-3 border border-obsidian-700 font-mono text-xs text-gray-400 leading-relaxed min-h-[80px]">
-          {typed}<span className="animate-pulse">|</span>
+        <h4 style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)', marginBottom: '12px' }}>React Code Reviewer</h4>
+        <div style={{ background: 'var(--bg-subtle)', borderRadius: 'var(--r-sm)', padding: '12px', borderLeft: '2px solid var(--accent-border)', fontFamily: 'var(--f-mono)', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.65, minHeight: '72px' }}>
+          {typed}<span style={{ opacity: typed.length < text.length ? 1 : 0, animation: 'pulse 1s step-end infinite' }}>|</span>
         </div>
-        <div className="flex items-center justify-between mt-3">
-          <div className="flex gap-1">
-            {['react', 'code-review', 'performance'].map(t => (
-              <span key={t} className="badge bg-obsidian-700 text-gray-400 text-xs">#{t}</span>
-            ))}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px' }}>
+          <div style={{ display: 'flex', gap: '5px' }}>
+            {['react', 'review', 'perf'].map(t => <span key={t} className="tag-pv">#{t}</span>)}
           </div>
-          <div className="flex gap-1.5">
-            <button className="p-1.5 rounded-lg bg-obsidian-700 text-red-400 hover:bg-red-500/20 transition-colors">
-              <Heart size={13} className="fill-red-400" />
-            </button>
-            <button className="p-1.5 rounded-lg bg-obsidian-700 text-gray-400 hover:text-white transition-colors">
-              <Copy size={13} />
-            </button>
+          <div style={{ display: 'flex', gap: '4px' }}>
+            <button className="icon-btn-pv" style={{ color: 'var(--accent)' }}><Heart size={13} fill="currentColor" /></button>
+            <button className="icon-btn-pv"><Copy size={13} /></button>
           </div>
         </div>
       </div>
-      {/* Floating stat chips */}
-      <div className="absolute -top-3 -right-3 bg-obsidian-700 border border-obsidian-500 rounded-xl px-3 py-1.5 shadow-lg flex items-center gap-2 animate-bounce" style={{ animationDuration: '3s' }}>
-        <div className="w-2 h-2 rounded-full bg-neon-green animate-pulse" />
-        <span className="text-white font-display text-xs font-semibold">247 prompts saved</span>
+
+      {/* badge top right */}
+      <div style={{ position: 'absolute', top: '-10px', right: '8px', background: 'var(--bg-inverse, #1A1814)', color: '#F0ECE6', borderRadius: '100px', padding: '6px 13px', fontSize: '12px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '6px', zIndex: 2, boxShadow: 'var(--shadow-md)' }}>
+        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80', display: 'inline-block' }} />
+        247 prompts saved
       </div>
-      <div className="absolute -bottom-4 -left-4 bg-obsidian-700 border border-obsidian-500 rounded-xl px-3 py-1.5 shadow-lg flex items-center gap-2" style={{ animation: 'bounce 4s ease-in-out infinite' }}>
-        <Clock size={12} className="text-neon-blue" />
-        <span className="text-white font-display text-xs font-semibold">Just duplicated</span>
+      {/* badge bottom left */}
+      <div style={{ position: 'absolute', bottom: '6px', left: '-12px', background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '100px', padding: '6px 12px', fontSize: '12px', fontWeight: 500, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '5px', zIndex: 2, boxShadow: 'var(--shadow-sm)' }}>
+        <Clock size={11} color="var(--accent)" /> Just duplicated
       </div>
     </div>
   );
@@ -163,257 +82,139 @@ const AnimatedPromptCard = () => {
 const Landing = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    const fn = () => setScrolled(window.scrollY > 16);
+    window.addEventListener('scroll', fn);
+    return () => window.removeEventListener('scroll', fn);
   }, []);
 
   const handleCTA = () => navigate(user ? '/dashboard' : '/register');
 
+  const navLink = (label, href) => (
+    <a key={label} href={href} style={{ fontSize: '14px', color: 'var(--text-secondary)', textDecoration: 'none', transition: 'color 0.13s' }}
+      onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+      onMouseLeave={e => e.currentTarget.style.color = 'var(--text-secondary)'}>{label}</a>
+  );
+
   return (
-    <div className="min-h-screen bg-obsidian-950 text-white overflow-x-hidden">
-      <ParticleField />
-
-      {/* ── NAVBAR ─────────────────────────────────────── */}
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-obsidian-950/90 backdrop-blur-md border-b border-obsidian-700' : ''}`}>
-        <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center shadow-lg shadow-neon-blue/30">
-              <Zap size={16} className="text-white" />
-            </div>
-            <span className="font-display font-bold text-white text-lg">PromptVault</span>
-          </div>
-
-          {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-8">
-            <a href="#features" className="text-gray-400 hover:text-white font-body text-sm transition-colors">Features</a>
-            <a href="#how-it-works" className="text-gray-400 hover:text-white font-body text-sm transition-colors">How it works</a>
-            <a href="#testimonials" className="text-gray-400 hover:text-white font-body text-sm transition-colors">Reviews</a>
-          </div>
-
-          {/* CTA */}
-          <div className="hidden md:flex items-center gap-3">
-            {user ? (
-              <button onClick={() => navigate('/dashboard')} className="btn-primary flex items-center gap-2">
-                Go to Dashboard <ArrowRight size={15} />
-              </button>
-            ) : (
-              <>
-                <Link to="/login" className="btn-secondary text-sm py-2">Sign in</Link>
-                <Link to="/register" className="btn-primary text-sm py-2">Get started free</Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile menu btn */}
-          <button onClick={() => setMenuOpen(!menuOpen)} className="md:hidden p-2 text-gray-400 hover:text-white">
-            {menuOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+    <div style={{ background: 'var(--bg-base)', minHeight: '100vh', overflowX: 'hidden' }}>
+      {/* NAV */}
+      <nav style={{ position: 'sticky', top: 0, zIndex: 50, padding: '0 48px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: scrolled ? 'var(--bg-base)' : 'transparent', borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent', backdropFilter: scrolled ? 'blur(10px)' : 'none', transition: 'all 0.2s' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="logo-icon-pv"><Zap size={14} color="white" /></div>
+          <span style={{ fontFamily: 'var(--f-serif)', fontSize: '19px', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>PromptVault</span>
         </div>
-
-        {/* Mobile menu */}
-        {menuOpen && (
-          <div className="md:hidden bg-obsidian-900 border-b border-obsidian-700 px-6 py-4 space-y-3">
-            <a href="#features" onClick={() => setMenuOpen(false)} className="block text-gray-400 hover:text-white font-body text-sm py-2">Features</a>
-            <a href="#how-it-works" onClick={() => setMenuOpen(false)} className="block text-gray-400 hover:text-white font-body text-sm py-2">How it works</a>
-            <a href="#testimonials" onClick={() => setMenuOpen(false)} className="block text-gray-400 hover:text-white font-body text-sm py-2">Reviews</a>
-            <div className="flex gap-3 pt-2">
-              <Link to="/login" className="btn-secondary flex-1 text-center text-sm">Sign in</Link>
-              <Link to="/register" className="btn-primary flex-1 text-center text-sm">Sign up free</Link>
-            </div>
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '28px' }}>
+          {navLink('Features', '#features')}
+          {navLink('How it works', '#how-it-works')}
+          {navLink('Reviews', '#reviews')}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ThemeToggle />
+          {user
+            ? <button onClick={() => navigate('/dashboard')} className="btn-pv btn-primary-pv">Dashboard <ArrowRight size={13} /></button>
+            : <>
+                <Link to="/login" className="btn-pv btn-ghost-pv" style={{ textDecoration: 'none' }}>Sign in</Link>
+                <Link to="/register" className="btn-pv btn-primary-pv" style={{ textDecoration: 'none' }}>Get started</Link>
+              </>
+          }
+        </div>
       </nav>
 
-      {/* ── HERO ────────────────────────────────────────── */}
-      <section className="relative z-10 pt-36 pb-24 px-6">
-        <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
-          {/* Left */}
-          <div className="space-y-8">
-            {/* Badge */}
-            <div className="inline-flex items-center gap-2 bg-neon-blue/10 border border-neon-blue/30 rounded-full px-4 py-1.5 animate-fade-in">
-              <div className="w-2 h-2 rounded-full bg-neon-green animate-pulse" />
-              <span className="text-neon-blue font-body text-sm font-medium">Your AI Prompt Library — Organized</span>
-            </div>
-
-            {/* Headline */}
-            <div className="space-y-3 animate-slide-up" style={{ animationDelay: '0.1s' }}>
-              <h1 className="font-display font-black text-5xl lg:text-6xl leading-[1.05] tracking-tight">
-                Never Lose a
-                <br />
-                <span className="text-gradient">Great Prompt</span>
-                <br />
-                Again.
-              </h1>
-              <p className="font-body text-gray-400 text-lg leading-relaxed max-w-lg">
-                Save, organize, and instantly recall your best AI prompts across ChatGPT, Claude, Midjourney, and more. Built for developers, writers, and creators who take AI seriously.
-              </p>
-            </div>
-
-            {/* CTAs */}
-            <div className="flex flex-wrap gap-4 animate-slide-up" style={{ animationDelay: '0.2s' }}>
-              <button onClick={handleCTA} className="btn-primary text-base px-7 py-3 flex items-center gap-2 shadow-lg shadow-neon-blue/20">
-                {user ? 'Go to Dashboard' : 'Start for free'} <ArrowRight size={18} />
-              </button>
-              {!user && (
-                <Link to="/login" className="btn-secondary text-base px-7 py-3">
-                  Sign in
-                </Link>
-              )}
-            </div>
-
-            {/* Social proof */}
-            <div className="flex items-center gap-6 animate-fade-in" style={{ animationDelay: '0.4s' }}>
-              <div className="flex -space-x-2">
-                {['SC', 'MW', 'PS', 'JD', 'AL'].map((initials, i) => (
-                  <div key={i} className="w-8 h-8 rounded-full border-2 border-obsidian-950 bg-gradient-to-br from-neon-blue/40 to-neon-purple/40 flex items-center justify-center">
-                    <span className="text-white text-xs font-display font-bold">{initials[0]}</span>
-                  </div>
-                ))}
-              </div>
-              <div>
-                <div className="flex items-center gap-1">
-                  {[...Array(5)].map((_, i) => <Star key={i} size={12} className="fill-yellow-400 text-yellow-400" />)}
-                </div>
-                <p className="text-gray-500 text-xs font-body mt-0.5">Loved by 500+ AI practitioners</p>
-              </div>
-            </div>
+      {/* HERO */}
+      <section style={{ maxWidth: '1100px', margin: '0 auto', padding: '72px 48px 96px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
+        <div>
+          <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--accent)', display: 'block', marginBottom: '16px' }}>
+            Your AI prompt library
+          </span>
+          <h1 className="hero-h1-pv" style={{ marginBottom: '20px' }}>
+            Never lose a<br /><em>great prompt</em><br />again.
+          </h1>
+          <p style={{ fontSize: '16px', color: 'var(--text-secondary)', lineHeight: 1.72, maxWidth: '420px', marginBottom: '32px' }}>
+            Save, organise, and instantly recall your best AI prompts across ChatGPT, Claude, Midjourney, and more. Built for developers, writers, and creators who take AI seriously.
+          </p>
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '28px', flexWrap: 'wrap' }}>
+            <button onClick={handleCTA} className="btn-pv btn-primary-pv" style={{ padding: '11px 22px', fontSize: '14.5px', gap: '8px' }}>
+              {user ? 'Go to Dashboard' : 'Start for free'} <ArrowRight size={15} />
+            </button>
+            {!user && <Link to="/login" className="btn-pv" style={{ padding: '11px 18px', fontSize: '14.5px', textDecoration: 'none' }}>Sign in</Link>}
           </div>
-
-          {/* Right — animated card */}
-          <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
-            <AnimatedPromptCard />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex' }}>
+              {[['#C4441A','SC'],['#3A6B5A','MW'],['#3B72D4','PS'],['#8040C8','JD'],['#C42E72','AL']].map(([bg, init], i) => (
+                <div key={init} style={{ width: '28px', height: '28px', borderRadius: '50%', background: bg, border: '2px solid var(--bg-base)', marginLeft: i > 0 ? '-8px' : 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 600, color: 'white' }}>{init[0]}</div>
+              ))}
+            </div>
+            <div>
+              <div style={{ display: 'flex', gap: '2px' }}>
+                {[...Array(5)].map((_, i) => <Star key={i} size={11} fill="#C4441A" color="#C4441A" />)}
+              </div>
+              <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)', marginTop: '1px' }}>Loved by 500+ AI practitioners</p>
+            </div>
           </div>
         </div>
+        <AnimatedCard />
       </section>
 
-      {/* ── AI TOOLS STRIP ──────────────────────────────── */}
-      <section className="relative z-10 py-10 border-y border-obsidian-700/50">
-        <div className="max-w-7xl mx-auto px-6">
-          <p className="text-gray-600 font-body text-sm text-center mb-6 uppercase tracking-widest">Works with every AI tool</p>
-          <div className="flex flex-wrap justify-center gap-3">
-            {aiTools.map(tool => (
-              <span key={tool.name} className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl ${tool.bg} ${tool.color} font-mono text-sm border border-white/5`}>
-                <Bot size={14} />
-                {tool.name}
+      {/* TOOLS STRIP */}
+      <section style={{ borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '26px 48px', background: 'var(--bg-surface)' }}>
+        <div style={{ maxWidth: '900px', margin: '0 auto', textAlign: 'center' }}>
+          <p style={{ fontFamily: 'var(--f-mono)', fontSize: '10.5px', color: 'var(--text-tertiary)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '14px' }}>Works with every AI tool</p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '7px' }}>
+            {aiTools.map(t => (
+              <span key={t} style={{ fontFamily: 'var(--f-mono)', fontSize: '12.5px', color: 'var(--text-secondary)', background: 'var(--bg-subtle)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '6px 13px', display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <Bot size={12} color="var(--text-tertiary)" /> {t}
               </span>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ── CATEGORIES ──────────────────────────────────── */}
-      <section className="relative z-10 py-16 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="font-display font-bold text-white text-3xl mb-2">Organized by Category</h2>
-            <p className="text-gray-500 font-body">Every prompt in its place</p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-4">
-            {categories.map(({ icon: Icon, label, color, bg }) => (
-              <div key={label} className={`card-hover flex items-center gap-3 px-5 py-3 cursor-pointer`}>
-                <div className={`w-9 h-9 rounded-lg ${bg} flex items-center justify-center`}>
-                  <Icon size={18} className={color} />
-                </div>
-                <span className="font-display font-semibold text-white">{label}</span>
-              </div>
-            ))}
-          </div>
+      {/* FEATURES */}
+      <section id="features" style={{ maxWidth: '1100px', margin: '0 auto', padding: '72px 48px' }}>
+        <div style={{ marginBottom: '44px' }}>
+          <span className="section-eyebrow-pv">Everything you need</span>
+          <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: '40px', color: 'var(--text-primary)', letterSpacing: '-0.03em', lineHeight: 1.08, maxWidth: '520px' }}>Built for<br />prompt power users</h2>
         </div>
-      </section>
-
-      {/* ── FEATURES GRID ───────────────────────────────── */}
-      <section id="features" className="relative z-10 py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-neon-blue font-mono text-sm uppercase tracking-widest">Everything you need</span>
-            <h2 className="font-display font-black text-white text-4xl mt-3 mb-4">Built for Prompt Power Users</h2>
-            <p className="text-gray-400 font-body text-lg max-w-2xl mx-auto">
-              Every feature is designed around one goal: making your AI prompts instantly accessible, perfectly organized, and endlessly reusable.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {features.map(({ icon: Icon, title, desc, color, accent, border }) => (
-              <div key={title} className={`card p-6 group hover:scale-[1.02] transition-transform duration-200 ${border} hover:border-opacity-50`}>
-                <div className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                  <Icon size={20} className={accent} />
-                </div>
-                <h3 className="font-display font-bold text-white text-base mb-2">{title}</h3>
-                <p className="text-gray-500 font-body text-sm leading-relaxed">{desc}</p>
+        <div className="features-grid-pv">
+          {features.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="feature-cell-pv">
+              <div style={{ width: '36px', height: '36px', borderRadius: 'var(--r-sm)', background: 'var(--bg-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '14px' }}>
+                <Icon size={17} color="var(--text-secondary)" />
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── HOW IT WORKS ────────────────────────────────── */}
-      <section id="how-it-works" className="relative z-10 py-24 px-6 bg-obsidian-900/40">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-neon-purple font-mono text-sm uppercase tracking-widest">Simple workflow</span>
-            <h2 className="font-display font-black text-white text-4xl mt-3 mb-4">Up and running in 60 seconds</h2>
-          </div>
-
-          <div className="relative">
-            {/* Connector line */}
-            <div className="hidden md:block absolute top-12 left-1/2 -translate-x-1/2 w-px h-[calc(100%-96px)] bg-gradient-to-b from-neon-blue/40 via-neon-purple/20 to-transparent" />
-
-            <div className="space-y-12">
-              {[
-                { step: '01', title: 'Create your account', desc: 'Sign up in seconds. No credit card required. Your data is private and secure with JWT authentication.', icon: Shield, side: 'left' },
-                { step: '02', title: 'Save your first prompt', desc: 'Add a title, paste your prompt, pick a category and AI tool. Add tags for easy recall later.', icon: Sparkles, side: 'right' },
-                { step: '03', title: 'Search & copy instantly', desc: 'Find any prompt in milliseconds with full-text search. One click copies it to your clipboard.', icon: Copy, side: 'left' },
-                { step: '04', title: 'Build your library', desc: 'Duplicate and remix prompts. Favorite the best ones. Watch your collection grow into a superpower.', icon: Layers, side: 'right' },
-              ].map(({ step, title, desc, icon: Icon, side }) => (
-                <div key={step} className={`flex items-center gap-8 ${side === 'right' ? 'flex-row-reverse' : ''}`}>
-                  <div className="flex-1">
-                    <div className={`card p-6 ${side === 'right' ? 'ml-auto' : ''} max-w-sm`}>
-                      <div className="flex items-center gap-3 mb-3">
-                        <span className="font-mono text-neon-blue text-xs opacity-60">{step}</span>
-                        <Icon size={16} className="text-neon-blue" />
-                      </div>
-                      <h3 className="font-display font-bold text-white text-lg mb-2">{title}</h3>
-                      <p className="text-gray-500 font-body text-sm">{desc}</p>
-                    </div>
-                  </div>
-                  <div className="hidden md:flex w-6 h-6 rounded-full bg-neon-blue border-4 border-obsidian-950 shrink-0 shadow-lg shadow-neon-blue/40" />
-                  <div className="flex-1" />
-                </div>
-              ))}
+              <h3 style={{ fontSize: '14.5px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>{title}</h3>
+              <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', lineHeight: 1.58 }}>{desc}</p>
             </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ────────────────────────────────── */}
-      <section id="testimonials" className="relative z-10 py-24 px-6">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-neon-green font-mono text-sm uppercase tracking-widest">What users say</span>
-            <h2 className="font-display font-black text-white text-4xl mt-3">Real people, real results</h2>
+      {/* HOW IT WORKS */}
+      <section id="how-it-works" style={{ background: 'var(--bg-surface)', borderTop: '1px solid var(--border)', borderBottom: '1px solid var(--border)', padding: '72px 48px' }}>
+        <div style={{ maxWidth: '640px', margin: '0 auto' }}>
+          <div style={{ textAlign: 'center', marginBottom: '52px' }}>
+            <span className="section-eyebrow-pv">Simple workflow</span>
+            <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: '38px', color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>Up and running in 60 seconds</h2>
           </div>
-
-          <div className="grid md:grid-cols-3 gap-6">
-            {testimonials.map(({ name, role, avatar, text, rating }) => (
-              <div key={name} className="card-hover p-6">
-                <div className="flex items-center gap-1 mb-4">
-                  {[...Array(rating)].map((_, i) => <Star key={i} size={14} className="fill-yellow-400 text-yellow-400" />)}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+            {[
+              { n: '01', title: 'Create your account',    desc: 'Sign up in seconds. No credit card. Your data is private and secure with JWT authentication.' },
+              { n: '02', title: 'Save your first prompt',  desc: 'Add a title, paste your prompt, pick a category and AI tool. Add tags for easy recall.' },
+              { n: '03', title: 'Search & copy instantly', desc: 'Find any prompt in milliseconds. One click copies it directly to your clipboard.' },
+              { n: '04', title: 'Build your library',      desc: 'Duplicate and remix. Favourite the best. Watch your collection compound into a real advantage.' },
+            ].map(({ n, title, desc }, i, arr) => (
+              <div key={n} style={{ display: 'flex', gap: '18px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, width: '28px' }}>
+                  <div style={{ width: '26px', height: '26px', borderRadius: '50%', background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <span style={{ fontFamily: 'var(--f-mono)', fontSize: '9.5px', fontWeight: 500, color: 'white' }}>{n}</span>
+                  </div>
+                  {i < arr.length - 1 && <div style={{ width: '1px', flex: 1, background: 'var(--border)', margin: '4px 0', minHeight: '28px' }} />}
                 </div>
-                <p className="text-gray-300 font-body text-sm leading-relaxed mb-5">"{text}"</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-neon-blue/30 to-neon-purple/30 border border-obsidian-500 flex items-center justify-center">
-                    <span className="text-white text-xs font-display font-bold">{avatar}</span>
-                  </div>
-                  <div>
-                    <p className="text-white font-display font-semibold text-sm">{name}</p>
-                    <p className="text-gray-500 font-body text-xs">{role}</p>
-                  </div>
+                <div style={{ paddingBottom: i < arr.length - 1 ? '26px' : 0 }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '4px' }}>{title}</h3>
+                  <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.65 }}>{desc}</p>
                 </div>
               </div>
             ))}
@@ -421,52 +222,66 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* ── CTA BANNER ──────────────────────────────────── */}
-      <section className="relative z-10 py-24 px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="relative overflow-hidden card p-12 text-center border-obsidian-600">
-            {/* Background glow */}
-            <div className="absolute inset-0 bg-gradient-to-r from-neon-blue/5 via-neon-purple/5 to-neon-blue/5" />
-            <div className="absolute -top-20 left-1/2 -translate-x-1/2 w-96 h-40 bg-neon-blue/10 blur-3xl rounded-full" />
-
-            <div className="relative z-10">
-              <h2 className="font-display font-black text-white text-4xl lg:text-5xl mb-4">
-                Your prompts deserve
-                <br />
-                a <span className="text-gradient">better home.</span>
-              </h2>
-              <p className="text-gray-400 font-body text-lg mb-8">
-                Join hundreds of AI practitioners building their prompt library today.
-              </p>
-              <button onClick={handleCTA} className="btn-primary text-base px-10 py-4 shadow-xl shadow-neon-blue/20 flex items-center gap-2 mx-auto">
-                {user ? 'Go to Dashboard' : 'Get started — it\'s free'} <ArrowRight size={18} />
-              </button>
-              {!user && (
-                <p className="text-gray-600 text-sm font-body mt-4">No credit card · No expiry · Always free</p>
-              )}
+      {/* TESTIMONIALS */}
+      <section id="reviews" style={{ maxWidth: '1100px', margin: '0 auto', padding: '72px 48px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <span className="section-eyebrow-pv">What users say</span>
+          <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: '38px', color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>Real people, real results</h2>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px' }}>
+          {testimonials.map(({ name, role, avatar, text, rating }) => (
+            <div key={name} className="card-pv" style={{ padding: '24px' }}>
+              <div style={{ display: 'flex', gap: '2px', marginBottom: '14px' }}>
+                {[...Array(rating)].map((_, i) => <Star key={i} size={12} fill="var(--accent)" color="var(--accent)" />)}
+              </div>
+              <p style={{ fontSize: '14px', color: 'var(--text-secondary)', lineHeight: 1.68, marginBottom: '20px', fontStyle: 'italic' }}>"{text}"</p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="avatar-pv" style={{ width: '34px', height: '34px', fontSize: '12px' }}>{avatar}</div>
+                <div>
+                  <p style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>{name}</p>
+                  <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)' }}>{role}</p>
+                </div>
+              </div>
             </div>
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* ── FOOTER ──────────────────────────────────────── */}
-      <footer className="relative z-10 border-t border-obsidian-700 py-10 px-6">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center">
-              <Zap size={14} className="text-white" />
-            </div>
-            <span className="font-display font-bold text-white">PromptVault</span>
-          </div>
-          <p className="text-gray-600 font-body text-sm">
-            Built with React, Node.js, MongoDB & TailwindCSS
+      {/* CTA BANNER */}
+      <section style={{ maxWidth: '760px', margin: '0 auto 80px', padding: '0 48px' }}>
+        <div className="card-pv" style={{ padding: '56px 48px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '3px', background: `linear-gradient(90deg, var(--accent), ${`#E8885A`}, var(--sage))` }} />
+          <span className="section-eyebrow-pv">Get started today</span>
+          <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: '40px', color: 'var(--text-primary)', letterSpacing: '-0.03em', marginBottom: '14px', lineHeight: 1.08 }}>
+            Your prompts deserve<br /><em style={{ color: 'var(--accent)', fontStyle: 'italic' }}>a better home.</em>
+          </h2>
+          <p style={{ fontSize: '15px', color: 'var(--text-secondary)', marginBottom: '28px' }}>
+            Join hundreds of AI practitioners building their prompt library.
           </p>
-          <div className="flex items-center gap-4">
-            <Link to="/login" className="text-gray-500 hover:text-white font-body text-sm transition-colors">Sign in</Link>
-            <Link to="/register" className="text-gray-500 hover:text-white font-body text-sm transition-colors">Sign up</Link>
-          </div>
+          <button onClick={handleCTA} className="btn-pv btn-primary-pv" style={{ padding: '12px 28px', fontSize: '15px', gap: '8px' }}>
+            {user ? 'Go to Dashboard' : "Get started — it's free"} <ArrowRight size={15} />
+          </button>
+          {!user && <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11.5px', color: 'var(--text-tertiary)', marginTop: '12px' }}>No credit card · No expiry · Always free</p>}
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{ borderTop: '1px solid var(--border)', padding: '24px 48px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+          <div className="logo-icon-pv" style={{ width: '24px', height: '24px' }}><Zap size={12} color="white" /></div>
+          <span style={{ fontFamily: 'var(--f-serif)', fontSize: '16px', color: 'var(--text-primary)', letterSpacing: '-0.01em' }}>PromptVault</span>
+        </div>
+        <p style={{ fontFamily: 'var(--f-mono)', fontSize: '12px', color: 'var(--text-tertiary)' }}>React · Node.js · MongoDB · TailwindCSS</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <ThemeToggle />
+          {[['Sign in','/login'],['Sign up','/register']].map(([l,to]) => (
+            <Link key={l} to={to} style={{ fontSize: '13px', color: 'var(--text-tertiary)', textDecoration: 'none', transition: 'color .13s' }}
+              onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+              onMouseLeave={e => e.currentTarget.style.color = 'var(--text-tertiary)'}>{l}</Link>
+          ))}
         </div>
       </footer>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0}}`}</style>
     </div>
   );
 };

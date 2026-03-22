@@ -5,36 +5,16 @@ import { promptService } from '../services/promptService';
 import { userService } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/common/Spinner';
-import {
-  Sparkles, Heart, Tag, ArrowRight, Wand2, Plus,
-  TrendingUp, Clock, Copy, Star, Zap, BarChart2,
-  Bot, Flame
-} from 'lucide-react';
-import { CATEGORY_COLORS, AI_TOOL_COLORS } from '../utils/constants';
+import { Sparkles, Heart, ArrowRight, Wand2, Plus, BarChart2, Copy, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// ── Stat Card ─────────────────────────────────────────────────────────────
-const StatCard = ({ icon: Icon, label, value, gradient, change }) => (
-  <div className="card-hover p-5 relative overflow-hidden group">
-    <div className={`absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br ${gradient} opacity-5`} />
-    <div className="relative z-10">
-      <div className="flex items-start justify-between mb-4">
-        <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
-          <Icon size={18} className="text-white" />
-        </div>
-        {change !== undefined && (
-          <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${change >= 0 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>
-            {change >= 0 ? '+' : ''}{change}
-          </span>
-        )}
-      </div>
-      <p className="font-display font-black text-white text-4xl mb-1 tabular-nums">{value ?? '—'}</p>
-      <p className="text-gray-500 font-body text-sm">{label}</p>
-    </div>
+const StatCard = ({ label, value, color }) => (
+  <div className="stat-card-pv" style={{ '--stat-color': color }}>
+    <div className="stat-label-pv">{label}</div>
+    <div className="stat-val-pv">{value ?? '—'}</div>
   </div>
 );
 
-// ── Activity Heatmap (7-day mini bar) ─────────────────────────────────────
 const ActivityBar = ({ activity }) => {
   const days = [];
   for (let i = 6; i >= 0; i--) {
@@ -42,48 +22,35 @@ const ActivityBar = ({ activity }) => {
     d.setDate(d.getDate() - i);
     const key = d.toISOString().split('T')[0];
     const found = activity?.find(a => a._id === key);
-    days.push({ label: d.toLocaleDateString('en-US', { weekday: 'short' }), count: found?.count || 0, date: key });
+    days.push({ label: d.toLocaleDateString('en-US', { weekday: 'short' }), count: found?.count || 0 });
   }
   const max = Math.max(...days.map(d => d.count), 1);
   return (
-    <div className="flex items-end gap-1.5 h-12">
+    <div style={{ display: 'flex', alignItems: 'flex-end', gap: '5px', height: '52px' }}>
       {days.map((d, i) => (
-        <div key={i} className="flex flex-col items-center gap-1 flex-1" title={`${d.date}: ${d.count} prompt${d.count !== 1 ? 's' : ''}`}>
-          <div
-            className="w-full rounded-sm transition-all duration-500"
-            style={{
-              height: `${Math.max((d.count / max) * 100, 8)}%`,
-              background: d.count > 0
-                ? `rgba(88,166,255,${0.3 + (d.count / max) * 0.7})`
-                : 'rgba(48,54,61,0.8)',
-            }}
-          />
-          <span className="text-gray-600 font-mono text-[9px]">{d.label[0]}</span>
+        <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', height: '100%', justifyContent: 'flex-end' }}>
+          <div title={`${d.label}: ${d.count}`} style={{ width: '100%', borderRadius: '2px', height: `${Math.max((d.count / max) * 100, 8)}%`, background: d.count > 0 ? `rgba(196,68,26,${0.25 + (d.count / max) * 0.72})` : 'var(--bg-muted)', transition: 'height 0.5s ease' }} />
+          <span style={{ fontFamily: 'var(--f-mono)', fontSize: '9.5px', color: 'var(--text-tertiary)' }}>{d.label[0]}</span>
         </div>
       ))}
     </div>
   );
 };
 
-// ── Quick Action Card ──────────────────────────────────────────────────────
-const QuickAction = ({ icon: Icon, label, desc, to, color, onClick }) => {
-  const content = (
-    <div className="card-hover p-4 flex items-center gap-3 group cursor-pointer">
-      <div className={`w-9 h-9 rounded-lg ${color} flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform`}>
-        <Icon size={17} className="text-white" />
+const QuickAction = ({ icon: Icon, label, desc, to, bg, color }) => (
+  <Link to={to} style={{ textDecoration: 'none' }}>
+    <div className="quick-action-pv" style={{ background: bg }} onMouseEnter={e => e.currentTarget.style.opacity = '0.8'} onMouseLeave={e => e.currentTarget.style.opacity = '1'}>
+      <div style={{ width: '30px', height: '30px', borderRadius: 'var(--r-sm)', background: `${color}22`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <Icon size={15} color={color} />
       </div>
-      <div className="min-w-0">
-        <p className="font-display font-semibold text-white text-sm">{label}</p>
-        <p className="text-gray-500 font-body text-xs truncate">{desc}</p>
+      <div>
+        <p style={{ fontSize: '13px', fontWeight: 500, color }}>{label}</p>
+        <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: `${color}99`, marginTop: '1px' }}>{desc}</p>
       </div>
-      <ArrowRight size={14} className="text-gray-600 group-hover:text-neon-blue ml-auto shrink-0 transition-colors" />
     </div>
-  );
-  if (onClick) return <button onClick={onClick} className="w-full text-left">{content}</button>;
-  return <Link to={to}>{content}</Link>;
-};
+  </Link>
+);
 
-// ── Main Dashboard ─────────────────────────────────────────────────────────
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -93,29 +60,17 @@ const Dashboard = () => {
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-  const greetingEmoji = hour < 12 ? '☀️' : hour < 17 ? '⚡' : '🌙';
 
   useEffect(() => {
-    const load = async () => {
-      try {
-        const [userStatsData, promptsData] = await Promise.all([
-          userService.getStats(),
-          promptService.getAll({ sort: 'newest' }),
-        ]);
-        setStats(userStatsData.stats);
-        setRecentPrompts(promptsData.prompts.slice(0, 6));
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    Promise.all([userService.getStats(), promptService.getAll({ sort: 'newest' })])
+      .then(([s, p]) => { setStats(s.stats); setRecentPrompts(p.prompts.slice(0, 6)); })
+      .catch(console.error)
+      .finally(() => setLoading(false));
   }, []);
 
   if (loading) return (
     <DashboardLayout title="Dashboard">
-      <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '80px' }}><Spinner size="lg" /></div>
     </DashboardLayout>
   );
 
@@ -123,84 +78,44 @@ const Dashboard = () => {
 
   return (
     <DashboardLayout title="Dashboard">
-
-      {/* ── Welcome Banner ── */}
-      <div className="relative overflow-hidden card p-6 mb-6 border-obsidian-600">
-        <div className="absolute inset-0 bg-gradient-to-r from-neon-blue/5 via-transparent to-neon-purple/5" />
-        <div className="absolute -top-8 -right-8 w-48 h-48 rounded-full bg-neon-blue/5 blur-2xl" />
-        <div className="relative flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h2 className="font-display font-black text-white text-2xl mb-1">
-              {greeting}, <span className="text-gradient">{user?.fullName?.split(' ')[0]}</span> {greetingEmoji}
-            </h2>
-            <p className="text-gray-500 font-body text-sm">
-              {stats?.total === 0
-                ? 'Start building your prompt library today.'
-                : `You have ${stats?.total} prompt${stats?.total !== 1 ? 's' : ''} saved${stats?.favorites > 0 ? ` · ${stats.favorites} favorite${stats.favorites !== 1 ? 's' : ''}` : ''}.`}
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => navigate('/prompts')}
-              className="flex items-center gap-2 bg-gradient-to-r from-neon-blue/20 to-neon-purple/20 border border-neon-blue/40 hover:border-neon-blue/70 text-neon-blue font-semibold text-sm px-4 py-2.5 rounded-lg transition-all"
-            >
-              <Wand2 size={15} /> Generate with AI
-            </button>
-            <Link to="/prompts" className="btn-primary flex items-center gap-2 text-sm">
-              <Plus size={15} /> New Prompt
-            </Link>
-          </div>
-        </div>
+      <div style={{ marginBottom: '28px' }}>
+        <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: '28px', letterSpacing: '-0.03em', color: 'var(--text-primary)', marginBottom: '4px' }}>
+          {greeting}, {user?.fullName?.split(' ')[0]}
+        </h2>
+        <p style={{ fontSize: '14px', color: 'var(--text-tertiary)' }}>
+          {stats?.total === 0 ? 'Start building your prompt library today.' : `${stats?.total} prompts saved${stats?.favorites > 0 ? ` · ${stats.favorites} favourite${stats.favorites !== 1 ? 's' : ''}` : ''}.`}
+        </p>
       </div>
 
-      {/* ── Stats Grid ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard icon={Sparkles}  label="Total Prompts"    value={stats?.total}         gradient="from-blue-500 to-blue-700" />
-        <StatCard icon={Heart}     label="Favorites"        value={stats?.favorites}      gradient="from-red-500 to-pink-700" />
-        <StatCard icon={Tag}       label="Categories"       value={stats?.categoryCount}  gradient="from-purple-500 to-violet-700" />
-        <StatCard icon={Bot}       label="AI Tools Used"    value={stats?.aiToolCount}    gradient="from-emerald-500 to-teal-700" />
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '22px' }}>
+        <StatCard label="Total prompts"  value={stats?.total}         color="#3B72D4" />
+        <StatCard label="Favourites"     value={stats?.favorites}     color="#C4441A" />
+        <StatCard label="Categories"     value={stats?.categoryCount} color="#2A9148" />
+        <StatCard label="AI tools used"  value={stats?.aiToolCount}   color="#8040C8" />
       </div>
 
-      {/* ── Middle Row ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
-
-        {/* Activity + Breakdown */}
-        <div className="lg:col-span-2 space-y-4">
-
-          {/* 7-Day Activity */}
-          <div className="card p-5">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-display font-semibold text-white flex items-center gap-2">
-                <Flame size={16} className="text-orange-400" /> Activity — Last 7 Days
-              </h3>
-              <span className="text-gray-600 font-mono text-xs">
-                {stats?.activity?.reduce((s, a) => s + a.count, 0) || 0} prompts
-              </span>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 272px', gap: '16px', marginBottom: '22px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div className="card-pv" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)' }}>7-day activity</span>
+              <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)' }}>{stats?.activity?.reduce((s, a) => s + a.count, 0) || 0} prompts</span>
             </div>
             <ActivityBar activity={stats?.activity} />
           </div>
 
-          {/* Category Breakdown */}
           {stats?.categoryBreakdown?.length > 0 && (
-            <div className="card p-5">
-              <h3 className="font-display font-semibold text-white mb-4 flex items-center gap-2">
-                <BarChart2 size={16} className="text-neon-blue" /> Category Breakdown
-              </h3>
-              <div className="space-y-2.5">
+            <div className="card-pv" style={{ padding: '20px' }}>
+              <span style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '16px' }}>Category breakdown</span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {stats.categoryBreakdown.map(({ _id: cat, count }) => {
-                  const colors = CATEGORY_COLORS[cat] || CATEGORY_COLORS.Other;
+                  const clr = { Coding:'#3B72D4', Writing:'#2A9148', Image:'#8040C8', Video:'#C85C1E', Marketing:'#C42E72', Other:'#857E78' };
                   const pct = stats.total ? Math.round((count / stats.total) * 100) : 0;
                   return (
-                    <div key={cat} className="flex items-center gap-3">
-                      <span className={`text-xs font-body ${colors.text} w-20 shrink-0`}>{cat}</span>
-                      <div className="flex-1 bg-obsidian-700 rounded-full h-1.5 overflow-hidden">
-                        <div className={`h-1.5 rounded-full transition-all duration-700`}
-                          style={{ width: `${pct}%`, backgroundColor: cat === 'Coding' ? '#58a6ff' : cat === 'Writing' ? '#3fb950' : cat === 'Image' ? '#bc8cff' : cat === 'Video' ? '#f78166' : cat === 'Marketing' ? '#ff7eb6' : '#8b949e' }} />
-                      </div>
-                      <div className="flex items-center gap-1.5 shrink-0">
-                        <span className="text-gray-400 font-mono text-xs w-4 text-right">{count}</span>
-                        <span className="text-gray-600 font-mono text-xs">({pct}%)</span>
-                      </div>
+                    <div key={cat} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontFamily: 'var(--f-mono)', fontSize: '12px', color: 'var(--text-secondary)', width: '72px', flexShrink: 0 }}>{cat}</span>
+                      <div className="bar-track-pv" style={{ flex: 1 }}><div className="bar-fill-pv" style={{ width: `${pct}%`, background: clr[cat] || 'var(--accent)' }} /></div>
+                      <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11.5px', color: 'var(--text-tertiary)', width: '42px', textAlign: 'right' }}>{count} ({pct}%)</span>
                     </div>
                   );
                 })}
@@ -209,117 +124,80 @@ const Dashboard = () => {
           )}
         </div>
 
-        {/* Right column */}
-        <div className="space-y-4">
-          {/* Favorite ratio ring */}
-          <div className="card p-5 flex flex-col items-center gap-3">
-            <h3 className="font-display font-semibold text-white self-start flex items-center gap-2">
-              <Star size={15} className="text-yellow-400" /> Favorite Rate
-            </h3>
-            <div className="relative w-24 h-24">
-              <svg viewBox="0 0 80 80" className="-rotate-90 w-full h-full">
-                <circle cx="40" cy="40" r="32" fill="none" stroke="#21262d" strokeWidth="8" />
-                <circle cx="40" cy="40" r="32" fill="none" stroke="#f85149" strokeWidth="8"
-                  strokeDasharray={`${2 * Math.PI * 32}`}
-                  strokeDashoffset={`${2 * Math.PI * 32 * (1 - favPct / 100)}`}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div className="card-pv" style={{ padding: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', alignSelf: 'flex-start' }}>Favourite rate</span>
+            <div style={{ position: 'relative', width: '88px', height: '88px' }}>
+              <svg viewBox="0 0 88 88" style={{ transform: 'rotate(-90deg)', width: '100%', height: '100%' }}>
+                <circle cx="44" cy="44" r="36" fill="none" stroke="var(--bg-muted)" strokeWidth="10" />
+                <circle cx="44" cy="44" r="36" fill="none" stroke="var(--accent)" strokeWidth="10"
+                  strokeDasharray={`${2 * Math.PI * 36}`} strokeDashoffset={`${2 * Math.PI * 36 * (1 - favPct / 100)}`}
                   strokeLinecap="round" style={{ transition: 'stroke-dashoffset 1s ease' }} />
               </svg>
-              <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="font-display font-bold text-white text-xl">{favPct}%</span>
+              <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span style={{ fontFamily: 'var(--f-serif)', fontSize: '18px', color: 'var(--text-primary)' }}>{favPct}%</span>
               </div>
             </div>
-            <p className="text-gray-500 font-body text-xs text-center">
-              {stats?.favorites} of {stats?.total} prompts favorited
-            </p>
+            <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)', textAlign: 'center' }}>{stats?.favorites} of {stats?.total} favourited</p>
           </div>
 
-          {/* Top Tags */}
           {stats?.topTags?.length > 0 && (
-            <div className="card p-5">
-              <h3 className="font-display font-semibold text-white mb-3 flex items-center gap-2">
-                <Tag size={15} className="text-neon-purple" /> Top Tags
-              </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {stats.topTags.map(({ _id: tag, count }) => (
-                  <span key={tag} className="inline-flex items-center gap-1 badge bg-obsidian-700 text-gray-400 border border-obsidian-500 text-xs hover:border-neon-purple/40 hover:text-neon-purple transition-colors cursor-default">
-                    #{tag} <span className="text-gray-600">{count}</span>
-                  </span>
-                ))}
+            <div className="card-pv" style={{ padding: '20px' }}>
+              <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '12px' }}>Top tags</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                {stats.topTags.map(({ _id: tag, count }) => <span key={tag} className="tag-pv" title={`${count} uses`}>#{tag}</span>)}
               </div>
             </div>
           )}
 
-          {/* Quick Actions */}
-          <div className="card p-4">
-            <h3 className="font-display font-semibold text-white mb-3 text-sm px-1">Quick Actions</h3>
-            <div className="space-y-1">
-              <QuickAction icon={Plus}     label="New Prompt"      desc="Write from scratch"      to="/prompts"    color="bg-neon-blue/80" />
-              <QuickAction icon={Wand2}    label="AI Generate"     desc="Generate with Groq AI"   to="/prompts"    color="bg-gradient-to-br from-neon-blue to-neon-purple" />
-              <QuickAction icon={Heart}    label="Favorites"       desc="View starred prompts"    to="/favorites"  color="bg-red-500/80" />
-              <QuickAction icon={BarChart2} label="Analytics"      desc="Deep dive your stats"    to="/analytics"  color="bg-emerald-500/80" />
+          <div className="card-pv" style={{ padding: '14px' }}>
+            <span style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text-primary)', display: 'block', marginBottom: '8px', paddingLeft: '4px' }}>Quick actions</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              <QuickAction icon={Plus}      label="New prompt"  desc="Write from scratch"    to="/prompts"   bg="var(--sage-subtle)"   color="var(--sage)" />
+              <QuickAction icon={Wand2}     label="AI generate" desc="Generate with Groq AI" to="/prompts"   bg="var(--amber-subtle)"  color="var(--amber)" />
+              <QuickAction icon={Heart}     label="Favourites"  desc="View starred prompts"  to="/favorites" bg="var(--accent-subtle)" color="var(--accent)" />
+              <QuickAction icon={BarChart2} label="Analytics"   desc="Deep dive your stats"  to="/analytics" bg="var(--bg-subtle)"     color="var(--text-secondary)" />
             </div>
           </div>
         </div>
       </div>
 
-      {/* ── Recent Prompts ── */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="font-display font-semibold text-white flex items-center gap-2">
-            <Clock size={16} className="text-gray-500" /> Recent Prompts
-          </h3>
-          <Link to="/prompts" className="flex items-center gap-1.5 text-neon-blue text-sm hover:underline font-body">
-            View all <ArrowRight size={14} />
-          </Link>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+          <span style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Clock size={15} color="var(--text-tertiary)" /> Recent prompts
+          </span>
+          <Link to="/prompts" className="btn-pv btn-ghost-pv" style={{ fontSize: '13px', gap: '5px', textDecoration: 'none' }}>View all <ArrowRight size={13} /></Link>
         </div>
 
         {recentPrompts.length === 0 ? (
-          <div className="card p-12 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-neon-blue/20 to-neon-purple/20 border border-obsidian-600 flex items-center justify-center mx-auto mb-4">
-              <Sparkles size={24} className="text-neon-blue" />
-            </div>
-            <h3 className="font-display font-semibold text-white mb-2">No prompts yet</h3>
-            <p className="text-gray-500 font-body text-sm mb-5">Create your first prompt or generate one with AI</p>
-            <div className="flex gap-3 justify-center">
-              <Link to="/prompts" className="btn-primary flex items-center gap-2"><Plus size={15} /> Create Prompt</Link>
-              <Link to="/prompts" className="flex items-center gap-2 bg-gradient-to-r from-neon-blue/20 to-neon-purple/20 border border-neon-blue/40 text-neon-blue font-semibold text-sm px-4 py-2.5 rounded-lg">
-                <Wand2 size={15} /> Generate with AI
-              </Link>
+          <div className="empty-state-pv">
+            <div className="empty-icon-pv"><Sparkles size={22} /></div>
+            <div className="empty-title-pv">No prompts yet</div>
+            <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '20px' }}>Create your first prompt or generate one with AI</p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
+              <Link to="/prompts" className="btn-pv btn-primary-pv" style={{ gap: '6px', textDecoration: 'none' }}><Plus size={14} /> Create prompt</Link>
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
-            {recentPrompts.map(prompt => {
-              const catColors = CATEGORY_COLORS[prompt.category] || CATEGORY_COLORS.Other;
-              const toolColor = AI_TOOL_COLORS[prompt.aiTool] || AI_TOOL_COLORS.Other;
-              return (
-                <div key={prompt._id} className="card-hover p-4 group">
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <p className="font-display font-semibold text-white text-sm leading-snug truncate group-hover:text-neon-blue transition-colors">{prompt.title}</p>
-                    {prompt.isFavorite && <Heart size={13} className="fill-red-400 text-red-400 shrink-0 mt-0.5" />}
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className={`badge ${catColors.bg} ${catColors.text} ${catColors.border} border text-xs`}>{prompt.category}</span>
-                    <span className={`font-mono text-xs ${toolColor}`}>{prompt.aiTool}</span>
-                  </div>
-                  <p className="text-gray-600 text-xs font-mono truncate">{prompt.promptText}</p>
-                  <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-obsidian-700">
-                    <span className="text-gray-600 font-mono text-xs">
-                      {new Date(prompt.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-                    </span>
-                    <button
-                      onClick={async () => {
-                        await navigator.clipboard.writeText(prompt.promptText);
-                        toast.success('Copied!', { icon: '📋' });
-                      }}
-                      className="flex items-center gap-1 text-xs text-gray-600 hover:text-neon-blue transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      <Copy size={11} /> Copy
-                    </button>
-                  </div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '12px' }}>
+            {recentPrompts.map(prompt => (
+              <div key={prompt._id} className="card-pv-hover" style={{ padding: '16px' }} onClick={() => navigate('/prompts')}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '8px', marginBottom: '8px' }}>
+                  <p style={{ fontWeight: 600, fontSize: '14px', color: 'var(--text-primary)', lineHeight: 1.35, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>{prompt.title}</p>
+                  {prompt.isFavorite && <Heart size={12} fill="var(--accent)" color="var(--accent)" style={{ flexShrink: 0, marginTop: '2px' }} />}
                 </div>
-              );
-            })}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span className={`cat-pill-pv cat-${prompt.category}`}><span className="cat-dot-pv" />{prompt.category}</span>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)' }}>{prompt.aiTool}</span>
+                </div>
+                <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11.5px', color: 'var(--text-tertiary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{prompt.promptText}</p>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', paddingTop: '10px', borderTop: '1px solid var(--border)' }}>
+                  <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)' }}>{new Date(prompt.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+                  <button onClick={async (e) => { e.stopPropagation(); await navigator.clipboard.writeText(prompt.promptText); toast.success('Copied'); }} className="icon-btn-pv"><Copy size={12} /></button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>

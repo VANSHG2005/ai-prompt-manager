@@ -4,40 +4,21 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import { userService } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import {
-  User, Mail, Lock, Save, Globe, MapPin, FileText,
-  AtSign, Palette, Bot, Trash2, AlertTriangle, Eye, EyeOff,
-  Shield, Bell, Download
-} from 'lucide-react';
+import { User, Mail, Lock, Save, Globe, MapPin, FileText, AtSign, Bot, Trash2, Eye, EyeOff } from 'lucide-react';
 import Spinner from '../components/common/Spinner';
+import { MiniSpinner } from '../components/common/Spinner';
 import { AI_TOOLS } from '../utils/constants';
 
 const AVATAR_COLORS = {
-  blue:   { bg: 'bg-gradient-to-br from-blue-500 to-blue-700',    ring: 'ring-blue-500/40' },
-  purple: { bg: 'bg-gradient-to-br from-purple-500 to-violet-700', ring: 'ring-purple-500/40' },
-  green:  { bg: 'bg-gradient-to-br from-emerald-500 to-teal-700',  ring: 'ring-emerald-500/40' },
-  orange: { bg: 'bg-gradient-to-br from-orange-500 to-red-600',    ring: 'ring-orange-500/40' },
-  pink:   { bg: 'bg-gradient-to-br from-pink-500 to-rose-600',     ring: 'ring-pink-500/40' },
-  cyan:   { bg: 'bg-gradient-to-br from-cyan-500 to-blue-600',     ring: 'ring-cyan-500/40' },
-  red:    { bg: 'bg-gradient-to-br from-red-500 to-pink-700',      ring: 'ring-red-500/40' },
-  yellow: { bg: 'bg-gradient-to-br from-yellow-400 to-orange-500', ring: 'ring-yellow-400/40' },
+  terracotta: '#C4441A',
+  midnight:   '#2A3A5C',
+  forest:     '#3A6B5A',
+  plum:       '#6a2a5c',
+  slate:      '#3a4a5c',
+  amber:      '#c8811a',
+  teal:       '#1a5c52',
+  rose:       '#c7336e',
 };
-
-const SectionCard = ({ icon: Icon, iconColor, title, children }) => (
-  <div className="card p-6">
-    <h3 className="font-display font-semibold text-white mb-5 flex items-center gap-2.5">
-      <div className={`w-7 h-7 rounded-lg ${iconColor} flex items-center justify-center`}>
-        <Icon size={14} className="text-white" />
-      </div>
-      {title}
-    </h3>
-    {children}
-  </div>
-);
-
-const MiniSpinner = () => (
-  <span className="w-4 h-4 border-2 border-obsidian-950/30 border-t-obsidian-950 rounded-full animate-spin inline-block" />
-);
 
 const Profile = () => {
   const { user, updateUser, logout } = useAuth();
@@ -45,7 +26,7 @@ const Profile = () => {
 
   const [profile, setProfile] = useState({
     fullName: '', email: '', bio: '', username: '',
-    website: '', location: '', avatarColor: 'blue', preferredAiTool: 'ChatGPT',
+    website: '', location: '', avatarColor: 'terracotta', preferredAiTool: 'ChatGPT',
   });
   const [passwordForm, setPasswordForm] = useState({ password: '', newPassword: '', confirmNewPassword: '' });
   const [showPw, setShowPw] = useState({ current: false, new: false, confirm: false });
@@ -66,7 +47,7 @@ const Profile = () => {
         username: data.user.username || '',
         website: data.user.website || '',
         location: data.user.location || '',
-        avatarColor: data.user.avatarColor || 'blue',
+        avatarColor: data.user.avatarColor || 'terracotta',
         preferredAiTool: data.user.preferredAiTool || 'ChatGPT',
       }))
       .catch(() => toast.error('Failed to load profile'))
@@ -79,7 +60,7 @@ const Profile = () => {
     try {
       const data = await userService.updateProfile(profile);
       updateUser(data.user);
-      toast.success('Profile updated!', { icon: '✅' });
+      toast.success('Profile updated');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Update failed');
     } finally { setLoading(false); }
@@ -88,11 +69,11 @@ const Profile = () => {
   const handlePasswordUpdate = async (e) => {
     e.preventDefault();
     if (passwordForm.newPassword !== passwordForm.confirmNewPassword) return toast.error('Passwords do not match');
-    if (passwordForm.newPassword.length < 6) return toast.error('Password must be at least 6 characters');
+    if (passwordForm.newPassword.length < 6) return toast.error('Minimum 6 characters');
     setPwLoading(true);
     try {
       await userService.updateProfile({ password: passwordForm.password, newPassword: passwordForm.newPassword });
-      toast.success('Password updated!', { icon: '🔐' });
+      toast.success('Password updated');
       setPasswordForm({ password: '', newPassword: '', confirmNewPassword: '' });
     } catch (err) {
       toast.error(err.response?.data?.message || 'Password update failed');
@@ -112,252 +93,264 @@ const Profile = () => {
     } finally { setDeleteLoading(false); }
   };
 
-  const avatarStyle = AVATAR_COLORS[profile.avatarColor] || AVATAR_COLORS.blue;
+  const avatarColor = AVATAR_COLORS[profile.avatarColor] || AVATAR_COLORS.terracotta;
   const initials = profile.fullName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
 
   const tabs = [
-    { id: 'profile', label: 'Profile', icon: User },
-    { id: 'security', label: 'Security', icon: Shield },
-    { id: 'preferences', label: 'Preferences', icon: Palette },
-    { id: 'danger', label: 'Account', icon: AlertTriangle },
+    { id: 'profile',      label: 'Profile',      icon: User },
+    { id: 'security',     label: 'Security',     icon: Lock },
+    { id: 'preferences',  label: 'Preferences',  icon: Bot },
+    { id: 'danger',       label: 'Account',      icon: Trash2 },
   ];
 
   if (fetching) return (
     <DashboardLayout title="Profile">
-      <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '80px' }}><Spinner size="lg" /></div>
     </DashboardLayout>
   );
 
+  /* shared label style */
+  const FL = { display: 'block', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: '5px', fontFamily: 'var(--f-sans)' };
+
   return (
     <DashboardLayout title="Profile">
-      <div className="max-w-3xl">
+      <div style={{ maxWidth: '840px' }}>
 
-        {/* ── Profile Header Card ── */}
-        <div className="card p-6 mb-6 relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-neon-blue/5 to-neon-purple/5" />
-          <div className="relative flex items-center gap-5 flex-wrap">
-            <div className={`w-20 h-20 rounded-2xl ${avatarStyle.bg} ring-4 ${avatarStyle.ring} flex items-center justify-center shadow-xl shrink-0`}>
-              <span className="font-display font-black text-white text-2xl">{initials}</span>
+        {/* Profile header */}
+        <div className="card-pv" style={{ padding: '24px', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '20px', flexWrap: 'wrap' }}>
+          <div style={{ width: '68px', height: '68px', borderRadius: '50%', background: avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 12px rgba(0,0,0,0.12)' }}>
+            <span style={{ fontFamily: 'var(--f-serif)', fontSize: '26px', color: 'white' }}>{initials}</span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: '22px', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>{profile.fullName}</h2>
+            {profile.username && <p style={{ fontFamily: 'var(--f-mono)', fontSize: '12.5px', color: 'var(--text-tertiary)' }}>@{profile.username}</p>}
+            <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginTop: '2px' }}>{profile.email}</p>
+            {profile.bio && <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '6px', lineHeight: 1.5 }}>{profile.bio}</p>}
+            <div style={{ display: 'flex', gap: '14px', marginTop: '8px', flexWrap: 'wrap' }}>
+              {profile.location && <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)' }}><MapPin size={11} />{profile.location}</span>}
+              {profile.website && <a href={profile.website} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--accent)', textDecoration: 'none' }}><Globe size={11} />{profile.website.replace(/^https?:\/\//, '')}</a>}
             </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="font-display font-bold text-white text-xl">{profile.fullName}</h2>
-              {profile.username && <p className="text-gray-500 font-mono text-sm">@{profile.username}</p>}
-              <p className="text-gray-500 font-body text-sm mt-0.5">{profile.email}</p>
-              {profile.bio && <p className="text-gray-400 font-body text-sm mt-2 max-w-md">{profile.bio}</p>}
-              <div className="flex items-center gap-4 mt-2 flex-wrap">
-                {profile.location && (
-                  <span className="flex items-center gap-1 text-gray-600 font-body text-xs">
-                    <MapPin size={11} /> {profile.location}
-                  </span>
-                )}
-                {profile.website && (
-                  <a href={profile.website} target="_blank" rel="noreferrer" className="flex items-center gap-1 text-neon-blue font-body text-xs hover:underline">
-                    <Globe size={11} /> {profile.website.replace(/^https?:\/\//, '')}
-                  </a>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="badge bg-obsidian-700 border border-obsidian-500 text-gray-400 text-xs flex items-center gap-1">
-                <Bot size={11} /> {profile.preferredAiTool}
-              </span>
-            </div>
+          </div>
+          <div style={{ flexShrink: 0 }}>
+            <span className="tag-pv" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <Bot size={11} /> {profile.preferredAiTool}
+            </span>
           </div>
         </div>
 
-        {/* ── Tab Bar ── */}
-        <div className="flex gap-1 bg-obsidian-800 border border-obsidian-600 rounded-xl p-1 mb-5">
+        {/* Tabs */}
+        <div className="tabs-pv" style={{ marginBottom: '18px' }}>
           {tabs.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               onClick={() => setActiveTab(id)}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-sm font-body transition-all ${
-                activeTab === id
-                  ? id === 'danger' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-obsidian-600 text-white border border-obsidian-500'
-                  : 'text-gray-500 hover:text-gray-300'
-              }`}
+              className={`tab-pv ${activeTab === id ? 'active' : ''}`}
+              style={activeTab === id && id === 'danger' ? { color: 'var(--accent)', borderColor: 'rgba(200,71,26,0.25)', background: 'var(--accent-subtle)' } : {}}
             >
-              <Icon size={14} />
-              <span className="hidden sm:block">{label}</span>
+              {label}
             </button>
           ))}
         </div>
 
         {/* ── Profile Tab ── */}
         {activeTab === 'profile' && (
-          <form onSubmit={handleProfileUpdate} className="space-y-4">
-            <SectionCard icon={User} iconColor="bg-neon-blue/80" title="Personal Information">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-gray-400 text-xs mb-1.5">Full Name</label>
-                  <input value={profile.fullName} onChange={e => setProfile(p => ({ ...p, fullName: e.target.value }))}
-                    className="input-field" placeholder="Your full name" />
+          <form onSubmit={handleProfileUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div className="card-pv" style={{ padding: '24px' }}>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '18px' }}>Personal information</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                {[
+                  { label: 'Full name', key: 'fullName', placeholder: 'Your full name' },
+                  { label: 'Username', key: 'username', placeholder: 'yourhandle', mono: true },
+                ].map(({ label, key, placeholder, mono }) => (
+                  <div key={key}>
+                    <label style={FL}>{label}</label>
+                    <input value={profile[key]} onChange={e => setProfile(p => ({ ...p, [key]: e.target.value }))}
+                      className="input-pv" placeholder={placeholder}
+                      style={mono ? { fontFamily: 'var(--f-mono)' } : {}} />
+                  </div>
+                ))}
+                <div style={{ gridColumn: '1/-1' }}>
+                  <label style={FL}>Email</label>
+                  <input type="email" value={profile.email} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))} className="input-pv" />
                 </div>
-                <div>
-                  <label className="block text-gray-400 text-xs mb-1.5 flex items-center gap-1"><AtSign size={11} /> Username</label>
-                  <input value={profile.username} onChange={e => setProfile(p => ({ ...p, username: e.target.value }))}
-                    className="input-field" placeholder="yourhandle" />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-gray-400 text-xs mb-1.5">Email</label>
-                  <input type="email" value={profile.email} onChange={e => setProfile(p => ({ ...p, email: e.target.value }))}
-                    className="input-field" />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="block text-gray-400 text-xs mb-1.5 flex items-center gap-1"><FileText size={11} /> Bio</label>
+                <div style={{ gridColumn: '1/-1' }}>
+                  <label style={FL}>Bio</label>
                   <textarea value={profile.bio} onChange={e => setProfile(p => ({ ...p, bio: e.target.value }))}
-                    rows={3} className="input-field resize-none" placeholder="Tell us about yourself..." maxLength={300} />
-                  <p className="text-gray-600 text-xs mt-1 text-right">{profile.bio.length}/300</p>
+                    rows={3} className="textarea-pv" placeholder="Tell us about yourself…" maxLength={300} />
+                  <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)', textAlign: 'right', marginTop: '3px' }}>{profile.bio.length}/300</p>
                 </div>
                 <div>
-                  <label className="block text-gray-400 text-xs mb-1.5 flex items-center gap-1"><MapPin size={11} /> Location</label>
-                  <input value={profile.location} onChange={e => setProfile(p => ({ ...p, location: e.target.value }))}
-                    className="input-field" placeholder="City, Country" />
+                  <label style={FL}>Location</label>
+                  <input value={profile.location} onChange={e => setProfile(p => ({ ...p, location: e.target.value }))} className="input-pv" placeholder="City, Country" />
                 </div>
                 <div>
-                  <label className="block text-gray-400 text-xs mb-1.5 flex items-center gap-1"><Globe size={11} /> Website</label>
-                  <input value={profile.website} onChange={e => setProfile(p => ({ ...p, website: e.target.value }))}
-                    className="input-field" placeholder="https://yoursite.com" />
+                  <label style={FL}>Website</label>
+                  <input value={profile.website} onChange={e => setProfile(p => ({ ...p, website: e.target.value }))} className="input-pv" placeholder="https://yoursite.com" />
                 </div>
               </div>
-            </SectionCard>
+            </div>
 
-            <SectionCard icon={Palette} iconColor="bg-purple-500/80" title="Avatar Color">
-              <div className="flex flex-wrap gap-3">
-                {Object.entries(AVATAR_COLORS).map(([color, styles]) => (
-                  <button key={color} type="button" onClick={() => setProfile(p => ({ ...p, avatarColor: color }))}
-                    className={`w-10 h-10 rounded-xl ${styles.bg} transition-all ${profile.avatarColor === color ? `ring-2 ring-offset-2 ring-offset-obsidian-800 ${styles.ring} scale-110` : 'opacity-60 hover:opacity-90'}`}>
-                    {profile.avatarColor === color && (
-                      <span className="text-white text-xs font-bold flex items-center justify-center h-full">✓</span>
-                    )}
-                  </button>
+            {/* Avatar color */}
+            <div className="card-pv" style={{ padding: '24px' }}>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '14px' }}>Avatar colour</p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                {Object.entries(AVATAR_COLORS).map(([name, hex]) => (
+                  <button
+                    key={name}
+                    type="button"
+                    onClick={() => setProfile(p => ({ ...p, avatarColor: name }))}
+                    className={`color-swatch-pv ${profile.avatarColor === name ? 'selected' : ''}`}
+                    style={{ background: hex, width: '28px', height: '28px' }}
+                    title={name}
+                  />
                 ))}
               </div>
-            </SectionCard>
+            </div>
 
-            <button type="submit" disabled={loading} className="btn-primary flex items-center gap-2">
-              {loading ? <><MiniSpinner /> Saving...</> : <><Save size={15} /> Save Profile</>}
+            <button type="submit" disabled={loading} className="btn-pv btn-primary-pv" style={{ alignSelf: 'flex-start', gap: '6px' }}>
+              {loading ? <MiniSpinner /> : <Save size={13} />}
+              {loading ? 'Saving…' : 'Save profile'}
             </button>
           </form>
         )}
 
         {/* ── Security Tab ── */}
         {activeTab === 'security' && (
-          <SectionCard icon={Lock} iconColor="bg-orange-500/80" title="Change Password">
-            <form onSubmit={handlePasswordUpdate} className="space-y-4">
+          <div className="card-pv" style={{ padding: '24px', maxWidth: '420px' }}>
+            <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '18px' }}>Change password</p>
+            <form onSubmit={handlePasswordUpdate} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               {[
-                { label: 'Current Password', key: 'password', show: 'current' },
-                { label: 'New Password', key: 'newPassword', show: 'new' },
-                { label: 'Confirm New Password', key: 'confirmNewPassword', show: 'confirm' },
+                { label: 'Current password', key: 'password',         show: 'current' },
+                { label: 'New password',     key: 'newPassword',      show: 'new' },
+                { label: 'Confirm password', key: 'confirmNewPassword', show: 'confirm' },
               ].map(({ label, key, show }) => (
                 <div key={key}>
-                  <label className="block text-gray-400 text-xs mb-1.5">{label}</label>
-                  <div className="relative">
+                  <label style={FL}>{label}</label>
+                  <div style={{ position: 'relative' }}>
                     <input
                       type={showPw[show] ? 'text' : 'password'}
                       value={passwordForm[key]}
                       onChange={e => setPasswordForm(p => ({ ...p, [key]: e.target.value }))}
-                      className="input-field pr-10" placeholder="••••••••"
+                      className="input-pv"
+                      placeholder="••••••••"
+                      style={{ paddingRight: '40px' }}
                     />
                     <button type="button" onClick={() => setShowPw(p => ({ ...p, [show]: !p[show] }))}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-300">
+                      style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-tertiary)', cursor: 'pointer', display: 'flex' }}>
                       {showPw[show] ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
                   </div>
                 </div>
               ))}
-              <button type="submit" disabled={pwLoading} className="btn-primary flex items-center gap-2">
-                {pwLoading ? <><MiniSpinner /> Updating...</> : <><Lock size={15} /> Update Password</>}
+              <button type="submit" disabled={pwLoading} className="btn-pv btn-primary-pv" style={{ alignSelf: 'flex-start', gap: '6px' }}>
+                {pwLoading ? <MiniSpinner /> : <Lock size={13} />}
+                {pwLoading ? 'Updating…' : 'Update password'}
               </button>
             </form>
-          </SectionCard>
+          </div>
         )}
 
         {/* ── Preferences Tab ── */}
         {activeTab === 'preferences' && (
-          <div className="space-y-4">
-            <SectionCard icon={Bot} iconColor="bg-emerald-500/80" title="Preferred AI Tool">
-              <p className="text-gray-500 font-body text-xs mb-3">This will be pre-selected when creating new prompts.</p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div className="card-pv" style={{ padding: '24px' }}>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)', marginBottom: '6px' }}>Preferred AI tool</p>
+              <p style={{ fontSize: '13px', color: 'var(--text-tertiary)', marginBottom: '16px' }}>Pre-selected when creating new prompts.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: '8px' }}>
                 {AI_TOOLS.map(tool => (
-                  <button key={tool} type="button"
+                  <button
+                    key={tool}
+                    type="button"
                     onClick={() => setProfile(p => ({ ...p, preferredAiTool: tool }))}
-                    className={`p-3 rounded-xl border text-sm font-body transition-all flex items-center gap-2 ${
-                      profile.preferredAiTool === tool
-                        ? 'bg-neon-blue/10 border-neon-blue/40 text-neon-blue'
-                        : 'bg-obsidian-700 border-obsidian-500 text-gray-400 hover:border-obsidian-400'
-                    }`}>
-                    <Bot size={14} /> {tool}
+                    style={{
+                      padding: '10px 14px', borderRadius: 'var(--r-md)',
+                      border: `1px solid ${profile.preferredAiTool === tool ? 'rgba(200,71,26,0.35)' : 'var(--border)'}`,
+                      background: profile.preferredAiTool === tool ? 'var(--accent-subtle)' : 'var(--bg-surface)',
+                      fontSize: '13px', fontWeight: 500,
+                      color: profile.preferredAiTool === tool ? 'var(--accent)' : 'var(--text-secondary)',
+                      cursor: 'pointer', fontFamily: 'var(--f-sans)', transition: 'all .15s',
+                      display: 'flex', alignItems: 'center', gap: '7px',
+                    }}
+                  >
+                    <Bot size={13} /> {tool}
                   </button>
                 ))}
               </div>
-            </SectionCard>
-            <button onClick={async () => {
-              setLoading(true);
-              try {
-                const data = await userService.updateProfile({ preferredAiTool: profile.preferredAiTool });
-                updateUser(data.user);
-                toast.success('Preferences saved!');
-              } catch { toast.error('Failed to save preferences'); }
-              finally { setLoading(false); }
-            }} disabled={loading} className="btn-primary flex items-center gap-2">
-              {loading ? <><MiniSpinner /> Saving...</> : <><Save size={15} /> Save Preferences</>}
+            </div>
+            <button
+              onClick={async () => {
+                setLoading(true);
+                try {
+                  const data = await userService.updateProfile({ preferredAiTool: profile.preferredAiTool });
+                  updateUser(data.user);
+                  toast.success('Preferences saved');
+                } catch { toast.error('Failed to save preferences'); }
+                finally { setLoading(false); }
+              }}
+              disabled={loading}
+              className="btn-pv btn-primary-pv"
+              style={{ alignSelf: 'flex-start', gap: '6px' }}
+            >
+              {loading ? <MiniSpinner /> : <Save size={13} />}
+              {loading ? 'Saving…' : 'Save preferences'}
             </button>
           </div>
         )}
 
-        {/* ── Danger Zone Tab ── */}
+        {/* ── Danger Zone ── */}
         {activeTab === 'danger' && (
-          <div className="space-y-4">
-            <div className="card p-6 border border-red-500/20 bg-red-500/5">
-              <h3 className="font-display font-semibold text-red-400 mb-2 flex items-center gap-2">
-                <AlertTriangle size={16} /> Danger Zone
-              </h3>
-              <p className="text-gray-500 font-body text-sm mb-5">
-                Permanently delete your account and all your prompts. This cannot be undone.
-              </p>
-              <button onClick={() => setShowDeleteModal(true)} className="btn-danger flex items-center gap-2">
-                <Trash2 size={15} /> Delete My Account
-              </button>
-            </div>
+          <div className="danger-zone-pv">
+            <p style={{ fontSize: '14px', fontWeight: 600, color: 'var(--accent)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <Trash2 size={14} /> Danger zone
+            </p>
+            <p style={{ fontSize: '13.5px', color: 'var(--text-tertiary)', lineHeight: 1.6, marginBottom: '18px' }}>
+              Permanently delete your account and all your prompts. This cannot be undone.
+            </p>
+            <button onClick={() => setShowDeleteModal(true)} className="btn-pv btn-danger-pv" style={{ gap: '6px' }}>
+              <Trash2 size={13} /> Delete my account
+            </button>
           </div>
         )}
       </div>
 
-      {/* ── Delete Confirm Modal ── */}
+      {/* Delete modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={() => setShowDeleteModal(false)} />
-          <div className="relative bg-obsidian-800 border border-red-500/30 rounded-2xl p-6 w-full max-w-md animate-slide-up shadow-2xl">
-            <div className="flex flex-col items-center text-center mb-5">
-              <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center mb-4">
-                <Trash2 size={24} className="text-red-400" />
+        <div className="modal-overlay-pv" onClick={() => setShowDeleteModal(false)}>
+          <div className="modal-pv" style={{ maxWidth: '400px' }} onClick={e => e.stopPropagation()}>
+            <div style={{ padding: '32px 28px', textAlign: 'center' }}>
+              <div style={{ width: '52px', height: '52px', background: 'var(--accent-subtle)', border: '1px solid rgba(200,71,26,0.2)', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 18px' }}>
+                <Trash2 size={22} color="var(--accent)" />
               </div>
-              <h3 className="font-display font-bold text-white text-lg">Delete Account?</h3>
-              <p className="text-gray-400 font-body text-sm mt-2">
-                All your prompts, favorites and data will be permanently erased.
+              <h3 style={{ fontFamily: 'var(--f-serif)', fontSize: '22px', color: 'var(--text-primary)', marginBottom: '8px' }}>Delete account?</h3>
+              <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', lineHeight: 1.6, marginBottom: '24px' }}>
+                All your prompts, favourites and data will be permanently erased.
               </p>
-            </div>
-            <div className="space-y-3 mb-5">
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5">Current Password</label>
-                <input type="password" value={deleteForm.password}
-                  onChange={e => setDeleteForm(p => ({ ...p, password: e.target.value }))}
-                  className="input-field" placeholder="••••••••" />
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '20px', textAlign: 'left' }}>
+                <div>
+                  <label style={{ ...FL, marginBottom: '5px' }}>Current password</label>
+                  <input type="password" value={deleteForm.password} onChange={e => setDeleteForm(p => ({ ...p, password: e.target.value }))} className="input-pv" placeholder="••••••••" />
+                </div>
+                <div>
+                  <label style={{ ...FL, marginBottom: '5px' }}>
+                    Type <span style={{ fontFamily: 'var(--f-mono)', color: 'var(--accent)', fontWeight: 600 }}>DELETE</span> to confirm
+                  </label>
+                  <input value={deleteForm.confirm} onChange={e => setDeleteForm(p => ({ ...p, confirm: e.target.value }))} className="input-pv" placeholder="DELETE" style={{ fontFamily: 'var(--f-mono)' }} />
+                </div>
               </div>
-              <div>
-                <label className="block text-gray-400 text-xs mb-1.5">Type <span className="text-red-400 font-mono">DELETE</span> to confirm</label>
-                <input value={deleteForm.confirm}
-                  onChange={e => setDeleteForm(p => ({ ...p, confirm: e.target.value }))}
-                  className="input-field font-mono" placeholder="DELETE" />
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={() => setShowDeleteModal(false)} className="btn-pv" style={{ flex: 1, justifyContent: 'center' }}>Cancel</button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleteLoading || deleteForm.confirm !== 'DELETE'}
+                  className="btn-pv btn-danger-pv"
+                  style={{ flex: 1, justifyContent: 'center', display: 'flex', alignItems: 'center', gap: '6px', opacity: deleteForm.confirm !== 'DELETE' ? 0.4 : 1 }}
+                >
+                  {deleteLoading ? <MiniSpinner dark /> : <Trash2 size={13} />}
+                  {deleteLoading ? 'Deleting…' : 'Delete forever'}
+                </button>
               </div>
-            </div>
-            <div className="flex gap-3">
-              <button onClick={() => setShowDeleteModal(false)} className="btn-secondary flex-1">Cancel</button>
-              <button onClick={handleDeleteAccount} disabled={deleteLoading || deleteForm.confirm !== 'DELETE'}
-                className="btn-danger flex-1 flex items-center justify-center gap-2 disabled:opacity-40">
-                {deleteLoading ? <><MiniSpinner /> Deleting...</> : <><Trash2 size={14} /> Delete Forever</>}
-              </button>
             </div>
           </div>
         </div>

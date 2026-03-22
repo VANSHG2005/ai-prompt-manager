@@ -1,43 +1,41 @@
 import { useState } from 'react';
-import {
-  X, Sparkles, Wand2, RefreshCw, Copy, CheckCheck,
-  ChevronDown, Lightbulb, Zap, RotateCcw, ArrowRight, Tag
-} from 'lucide-react';
+import { X, Wand2, RefreshCw, Copy, CheckCheck, Lightbulb, Zap, ArrowRight, Tag, Sparkles } from 'lucide-react';
 import { CATEGORIES, AI_TOOLS } from '../../utils/constants';
-import {
-  generatePrompt, improvePrompt, generateVariations, suggestTags, generateTitle
-} from '../../services/aiGeneratorService';
+import { generatePrompt, improvePrompt, generateVariations, suggestTags, generateTitle } from '../../services/aiGeneratorService';
 import toast from 'react-hot-toast';
+import { LoadingDots, MiniSpinner } from '../common/Spinner';
 
 const TONES = ['Professional', 'Casual', 'Creative', 'Technical', 'Friendly', 'Authoritative'];
 const LENGTHS = ['Short', 'Medium', 'Detailed', 'Comprehensive'];
 
-const TabBtn = ({ active, onClick, children }) => (
-  <button
-    onClick={onClick}
-    className={`px-4 py-2 text-sm font-body rounded-lg transition-all ${
-      active
-        ? 'bg-neon-blue text-obsidian-950 font-semibold'
-        : 'text-gray-400 hover:text-white hover:bg-obsidian-700'
-    }`}
-  >
-    {children}
-  </button>
-);
-
-const LoadingDots = () => (
-  <div className="flex items-center gap-1">
-    {[0, 1, 2].map(i => (
-      <div
-        key={i}
-        className="w-1.5 h-1.5 rounded-full bg-neon-blue animate-bounce"
-        style={{ animationDelay: `${i * 0.15}s` }}
-      />
-    ))}
+const ResultBlock = ({ text, onRegenerate, onCopy, copied, onUse }) => (
+  <div className="animate-slide-up">
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+      <span className="section-eyebrow-pv" style={{ marginBottom: 0 }}>Generated prompt</span>
+      <div style={{ display: 'flex', gap: '6px' }}>
+        {onRegenerate && (
+          <button className="btn-pv" style={{ padding: '5px 10px', fontSize: '12px', gap: '5px' }} onClick={onRegenerate}>
+            <RefreshCw size={12} /> Regenerate
+          </button>
+        )}
+        <button className="btn-pv" style={{ padding: '5px 10px', fontSize: '12px', gap: '5px' }} onClick={onCopy}>
+          {copied ? <><CheckCheck size={12} style={{ color: 'var(--sage)' }} /> Copied</> : <><Copy size={12} /> Copy</>}
+        </button>
+      </div>
+    </div>
+    <div className="prompt-mono-block-pv" style={{ marginBottom: '12px', maxHeight: '180px', overflowY: 'auto' }}>
+      {text}
+    </div>
+    <button
+      className="btn-pv btn-primary-pv"
+      onClick={onUse}
+      style={{ width: '100%', justifyContent: 'center', display: 'flex', gap: '6px' }}
+    >
+      Use this prompt <ArrowRight size={14} />
+    </button>
   </div>
 );
 
-// ── TAB 1: Generate from scratch ──────────────────────────────────────────
 const GenerateTab = ({ onUse }) => {
   const [topic, setTopic] = useState('');
   const [category, setCategory] = useState('Coding');
@@ -48,55 +46,43 @@ const GenerateTab = ({ onUse }) => {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const examples = [
-    'A React component code reviewer',
-    'A blog post about sustainable tech',
-    'A photorealistic portrait in studio lighting',
-    'A Python script for data analysis',
-    'A product launch email campaign',
-  ];
+  const examples = ['A React component reviewer', 'Blog post about sustainable tech', 'Product launch email', 'Python data analysis script'];
 
   const handleGenerate = async () => {
-    if (!topic.trim()) return toast.error('Please describe what you want to generate');
-    setLoading(true);
-    setResult('');
+    if (!topic.trim()) return toast.error('Describe what you want to generate');
+    setLoading(true); setResult('');
     try {
       const text = await generatePrompt({ topic, category, aiTool, tone, length });
       setResult(text);
-      toast.success('Prompt generated!', { icon: '✨' });
-    } catch (err) {
-      toast.error(err.message || 'Generation failed. Check your API key.');
-    } finally {
-      setLoading(false);
-    }
+    } catch { toast.error('Generation failed — check API key'); }
+    finally { setLoading(false); }
   };
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(result);
     setCopied(true);
-    toast.success('Copied!', { icon: '📋' });
     setTimeout(() => setCopied(false), 2000);
   };
 
   return (
-    <div className="space-y-4">
-      {/* Topic input */}
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       <div>
-        <label className="block text-gray-400 text-xs mb-1.5">Describe your prompt topic <span className="text-red-400">*</span></label>
+        <label className="form-label-pv">Describe your prompt <span style={{ color: 'var(--accent)' }}>*</span></label>
         <textarea
           value={topic}
           onChange={e => setTopic(e.target.value)}
           rows={3}
-          className="input-field resize-none"
-          placeholder="E.g. 'A senior developer doing a code review focused on performance and security...'"
+          className="textarea-pv"
+          placeholder="A senior developer reviewing React code for performance and security…"
         />
-        {/* Example chips */}
-        <div className="flex flex-wrap gap-1.5 mt-2">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginTop: '6px' }}>
           {examples.map(ex => (
             <button
               key={ex}
               onClick={() => setTopic(ex)}
-              className="text-xs text-gray-500 hover:text-neon-blue bg-obsidian-700 hover:bg-obsidian-600 border border-obsidian-500 hover:border-neon-blue/30 rounded-lg px-2.5 py-1 transition-all"
+              style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)', background: 'var(--bg-base)', border: '1px solid var(--border)', borderRadius: 'var(--r-sm)', padding: '3px 8px', cursor: 'pointer', transition: 'all .15s' }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--text-primary)'; e.currentTarget.style.borderColor = 'var(--border-strong)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--text-tertiary)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
             >
               {ex}
             </button>
@@ -104,76 +90,41 @@ const GenerateTab = ({ onUse }) => {
         </div>
       </div>
 
-      {/* Config row */}
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-gray-400 text-xs mb-1.5">Category</label>
-          <select value={category} onChange={e => setCategory(e.target.value)} className="input-field">
-            {CATEGORIES.map(c => <option key={c}>{c}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-gray-400 text-xs mb-1.5">AI Tool</label>
-          <select value={aiTool} onChange={e => setAiTool(e.target.value)} className="input-field">
-            {AI_TOOLS.map(t => <option key={t}>{t}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-gray-400 text-xs mb-1.5">Tone</label>
-          <select value={tone} onChange={e => setTone(e.target.value)} className="input-field">
-            {TONES.map(t => <option key={t}>{t}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="block text-gray-400 text-xs mb-1.5">Length</label>
-          <select value={length} onChange={e => setLength(e.target.value)} className="input-field">
-            {LENGTHS.map(l => <option key={l}>{l}</option>)}
-          </select>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        {[['Category', 'category', CATEGORIES], ['AI Tool', 'aiTool', AI_TOOLS]].map(([label, key, opts]) => (
+          <div key={key}>
+            <label className="form-label-pv">{label}</label>
+            <select value={key === 'category' ? category : aiTool} onChange={e => key === 'category' ? setCategory(e.target.value) : setAiTool(e.target.value)} className="select-pv" style={{ width: '100%' }}>
+              {opts.map(o => <option key={o}>{o}</option>)}
+            </select>
+          </div>
+        ))}
+        {[['Tone', 'tone', TONES, tone, setTone], ['Length', 'length', LENGTHS, length, setLength]].map(([label, key, opts, val, setter]) => (
+          <div key={key}>
+            <label className="form-label-pv">{label}</label>
+            <select value={val} onChange={e => setter(e.target.value)} className="select-pv" style={{ width: '100%' }}>
+              {opts.map(o => <option key={o}>{o}</option>)}
+            </select>
+          </div>
+        ))}
       </div>
 
       <button
         onClick={handleGenerate}
         disabled={loading}
-        className="btn-primary w-full flex items-center justify-center gap-2 py-3"
+        className="btn-pv btn-primary-pv"
+        style={{ justifyContent: 'center', display: 'flex', gap: '8px', padding: '10px' }}
       >
-        {loading ? (
-          <><LoadingDots /><span className="ml-2">Generating...</span></>
-        ) : (
-          <><Wand2 size={16} /> Generate Prompt</>
-        )}
+        {loading ? <><LoadingDots /> <span style={{ marginLeft: '8px' }}>Generating…</span></> : <><Wand2 size={14} /> Generate prompt</>}
       </button>
 
-      {/* Result */}
       {result && (
-        <div className="animate-slide-up">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-gray-400 text-xs">Generated Prompt</label>
-            <div className="flex gap-2">
-              <button onClick={handleGenerate} className="btn-secondary text-xs py-1 flex items-center gap-1.5">
-                <RefreshCw size={12} /> Regenerate
-              </button>
-              <button onClick={handleCopy} className="btn-secondary text-xs py-1 flex items-center gap-1.5">
-                {copied ? <><CheckCheck size={12} className="text-green-400" /> Copied!</> : <><Copy size={12} /> Copy</>}
-              </button>
-            </div>
-          </div>
-          <div className="bg-obsidian-900 border border-neon-blue/20 rounded-xl p-4 font-mono text-xs text-gray-300 leading-relaxed whitespace-pre-wrap">
-            {result}
-          </div>
-          <button
-            onClick={() => onUse({ promptText: result, category, aiTool })}
-            className="btn-primary w-full mt-3 flex items-center justify-center gap-2"
-          >
-            Use this Prompt <ArrowRight size={15} />
-          </button>
-        </div>
+        <ResultBlock text={result} onRegenerate={handleGenerate} onCopy={handleCopy} copied={copied} onUse={() => onUse({ promptText: result, category, aiTool })} />
       )}
     </div>
   );
 };
 
-// ── TAB 2: Improve existing prompt ────────────────────────────────────────
 const ImproveTab = ({ onUse }) => {
   const [original, setOriginal] = useState('');
   const [goal, setGoal] = useState('');
@@ -182,81 +133,33 @@ const ImproveTab = ({ onUse }) => {
   const [copied, setCopied] = useState(false);
 
   const handleImprove = async () => {
-    if (!original.trim()) return toast.error('Please paste a prompt to improve');
-    setLoading(true);
-    setResult('');
-    try {
-      const text = await improvePrompt({ promptText: original, goal });
-      setResult(text);
-      toast.success('Prompt improved!', { icon: '⚡' });
-    } catch (err) {
-      toast.error(err.message || 'Improvement failed');
-    } finally {
-      setLoading(false);
-    }
+    if (!original.trim()) return toast.error('Paste a prompt to improve');
+    setLoading(true); setResult('');
+    try { const text = await improvePrompt({ promptText: original, goal }); setResult(text); }
+    catch { toast.error('Improvement failed'); }
+    finally { setLoading(false); }
   };
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <div>
-        <label className="block text-gray-400 text-xs mb-1.5">Your existing prompt <span className="text-red-400">*</span></label>
-        <textarea
-          value={original}
-          onChange={e => setOriginal(e.target.value)}
-          rows={4}
-          className="input-field resize-none font-mono text-xs"
-          placeholder="Paste your current prompt here..."
-        />
+        <label className="form-label-pv">Existing prompt <span style={{ color: 'var(--accent)' }}>*</span></label>
+        <textarea value={original} onChange={e => setOriginal(e.target.value)} rows={4} className="textarea-pv" placeholder="Paste your current prompt…" style={{ fontFamily: 'var(--f-mono)', fontSize: '13px' }} />
       </div>
       <div>
-        <label className="block text-gray-400 text-xs mb-1.5">Improvement goal <span className="text-gray-600">(optional)</span></label>
-        <input
-          value={goal}
-          onChange={e => setGoal(e.target.value)}
-          className="input-field"
-          placeholder="E.g. 'Make it more specific for senior developers', 'Add output format instructions'..."
-        />
+        <label className="form-label-pv">Improvement goal <span style={{ color: 'var(--text-tertiary)', fontWeight: 400 }}>(optional)</span></label>
+        <input value={goal} onChange={e => setGoal(e.target.value)} className="input-pv" placeholder="Make it more specific for senior developers…" />
       </div>
-
-      <button onClick={handleImprove} disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 py-3">
-        {loading ? <><LoadingDots /><span className="ml-2">Improving...</span></> : <><Zap size={16} /> Improve Prompt</>}
+      <button onClick={handleImprove} disabled={loading} className="btn-pv btn-ai-pv" style={{ justifyContent: 'center', display: 'flex', gap: '8px', padding: '10px' }}>
+        {loading ? <><LoadingDots /><span style={{ marginLeft: '8px' }}>Improving…</span></> : <><Zap size={14} /> Improve prompt</>}
       </button>
-
       {result && (
-        <div className="animate-slide-up space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-gray-400 text-xs">Improved Prompt</label>
-            <button
-              onClick={async () => { await navigator.clipboard.writeText(result); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-              className="btn-secondary text-xs py-1 flex items-center gap-1.5"
-            >
-              {copied ? <><CheckCheck size={12} className="text-green-400" /> Copied!</> : <><Copy size={12} /> Copy</>}
-            </button>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-gray-600 text-xs mb-1.5 font-mono">Original</p>
-              <div className="bg-obsidian-900 border border-obsidian-600 rounded-lg p-3 text-xs text-gray-500 font-mono leading-relaxed h-32 overflow-y-auto">
-                {original}
-              </div>
-            </div>
-            <div>
-              <p className="text-neon-blue text-xs mb-1.5 font-mono">Improved ✨</p>
-              <div className="bg-obsidian-900 border border-neon-blue/20 rounded-lg p-3 text-xs text-gray-300 font-mono leading-relaxed h-32 overflow-y-auto">
-                {result}
-              </div>
-            </div>
-          </div>
-          <button onClick={() => onUse({ promptText: result })} className="btn-primary w-full flex items-center justify-center gap-2">
-            Use Improved Version <ArrowRight size={15} />
-          </button>
-        </div>
+        <ResultBlock text={result} onCopy={async () => { await navigator.clipboard.writeText(result); setCopied(true); setTimeout(() => setCopied(false), 2000); }} copied={copied} onUse={() => onUse({ promptText: result })} />
       )}
     </div>
   );
 };
 
-// ── TAB 3: Generate Variations ─────────────────────────────────────────────
 const VariationsTab = ({ onUse }) => {
   const [original, setOriginal] = useState('');
   const [variations, setVariations] = useState([]);
@@ -264,62 +167,38 @@ const VariationsTab = ({ onUse }) => {
   const [copiedIdx, setCopiedIdx] = useState(null);
 
   const handleGenerate = async () => {
-    if (!original.trim()) return toast.error('Please paste a prompt first');
-    setLoading(true);
-    setVariations([]);
-    try {
-      const vars = await generateVariations({ promptText: original, count: 3 });
-      setVariations(vars);
-      toast.success(`${vars.length} variations generated!`, { icon: '🎨' });
-    } catch (err) {
-      toast.error(err.message || 'Failed to generate variations');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleCopy = async (text, idx) => {
-    await navigator.clipboard.writeText(text);
-    setCopiedIdx(idx);
-    toast.success('Copied!');
-    setTimeout(() => setCopiedIdx(null), 2000);
+    if (!original.trim()) return toast.error('Paste a prompt first');
+    setLoading(true); setVariations([]);
+    try { const vars = await generateVariations({ promptText: original, count: 3 }); setVariations(vars); }
+    catch { toast.error('Generation failed'); }
+    finally { setLoading(false); }
   };
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <div>
-        <label className="block text-gray-400 text-xs mb-1.5">Base prompt <span className="text-red-400">*</span></label>
-        <textarea
-          value={original}
-          onChange={e => setOriginal(e.target.value)}
-          rows={3}
-          className="input-field resize-none font-mono text-xs"
-          placeholder="Enter your base prompt to generate variations..."
-        />
+        <label className="form-label-pv">Base prompt <span style={{ color: 'var(--accent)' }}>*</span></label>
+        <textarea value={original} onChange={e => setOriginal(e.target.value)} rows={3} className="textarea-pv" placeholder="Enter your base prompt…" style={{ fontFamily: 'var(--f-mono)', fontSize: '13px' }} />
       </div>
-
-      <button onClick={handleGenerate} disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 py-3">
-        {loading ? <><LoadingDots /><span className="ml-2">Generating 3 variations...</span></> : <><Lightbulb size={16} /> Generate Variations</>}
+      <button onClick={handleGenerate} disabled={loading} className="btn-pv btn-primary-pv" style={{ justifyContent: 'center', display: 'flex', gap: '8px', padding: '10px' }}>
+        {loading ? <><LoadingDots /><span style={{ marginLeft: '8px' }}>Generating 3 variations…</span></> : <><Lightbulb size={14} /> Generate variations</>}
       </button>
-
       {variations.length > 0 && (
-        <div className="space-y-3 animate-slide-up">
-          <p className="text-gray-500 text-xs font-body">Pick the best variation or use all of them</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }} className="animate-slide-up">
           {variations.map((v, i) => (
-            <div key={i} className="bg-obsidian-900 border border-obsidian-600 hover:border-obsidian-400 rounded-xl p-4 transition-colors group">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <span className="text-neon-blue font-mono text-xs">Variation {i + 1}</span>
-                <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button onClick={() => handleCopy(v, i)} className="btn-secondary text-xs py-1 flex items-center gap-1">
-                    {copiedIdx === i ? <CheckCheck size={11} className="text-green-400" /> : <Copy size={11} />}
-                    {copiedIdx === i ? 'Copied' : 'Copy'}
+            <div key={i} style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '14px 16px' }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: '10px' }}>
+                <span style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)' }}>Variation {i + 1}</span>
+                <div style={{ display: 'flex', gap: '5px' }}>
+                  <button className="btn-pv" style={{ padding: '4px 8px', fontSize: '12px', gap: '4px' }} onClick={async () => { await navigator.clipboard.writeText(v); setCopiedIdx(i); setTimeout(() => setCopiedIdx(null), 2000); }}>
+                    {copiedIdx === i ? <CheckCheck size={11} color="var(--sage)" /> : <Copy size={11} />}
                   </button>
-                  <button onClick={() => onUse({ promptText: v })} className="btn-primary text-xs py-1 flex items-center gap-1">
+                  <button className="btn-pv btn-primary-pv" style={{ padding: '4px 10px', fontSize: '12px', gap: '4px' }} onClick={() => onUse({ promptText: v })}>
                     Use <ArrowRight size={11} />
                   </button>
                 </div>
               </div>
-              <p className="text-gray-300 font-mono text-xs leading-relaxed">{v}</p>
+              <p style={{ fontFamily: 'var(--f-mono)', fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: 1.6 }}>{v}</p>
             </div>
           ))}
         </div>
@@ -328,7 +207,6 @@ const VariationsTab = ({ onUse }) => {
   );
 };
 
-// ── TAB 4: AI Tag & Title Suggester ────────────────────────────────────────
 const SmartTagsTab = ({ onUse }) => {
   const [promptText, setPromptText] = useState('');
   const [category, setCategory] = useState('Coding');
@@ -337,72 +215,48 @@ const SmartTagsTab = ({ onUse }) => {
   const [loading, setLoading] = useState(false);
 
   const handleSuggest = async () => {
-    if (!promptText.trim()) return toast.error('Please enter a prompt text');
-    setLoading(true);
-    setTags([]); setTitle('');
+    if (!promptText.trim()) return toast.error('Enter prompt text first');
+    setLoading(true); setTags([]); setTitle('');
     try {
-      const [suggestedTags, suggestedTitle] = await Promise.all([
-        suggestTags({ promptText, category }),
-        generateTitle({ promptText }),
-      ]);
-      setTags(suggestedTags);
-      setTitle(suggestedTitle);
-      toast.success('Tags and title suggested!', { icon: '🏷️' });
-    } catch (err) {
-      toast.error(err.message || 'Suggestion failed');
-    } finally {
-      setLoading(false);
-    }
+      const [suggestedTags, suggestedTitle] = await Promise.all([suggestTags({ promptText, category }), generateTitle({ promptText })]);
+      setTags(suggestedTags); setTitle(suggestedTitle);
+    } catch { toast.error('Suggestion failed'); }
+    finally { setLoading(false); }
   };
 
   return (
-    <div className="space-y-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
       <div>
-        <label className="block text-gray-400 text-xs mb-1.5">Prompt text <span className="text-red-400">*</span></label>
-        <textarea
-          value={promptText}
-          onChange={e => setPromptText(e.target.value)}
-          rows={4}
-          className="input-field resize-none font-mono text-xs"
-          placeholder="Paste your prompt to get AI-suggested title and tags..."
-        />
+        <label className="form-label-pv">Prompt text <span style={{ color: 'var(--accent)' }}>*</span></label>
+        <textarea value={promptText} onChange={e => setPromptText(e.target.value)} rows={4} className="textarea-pv" placeholder="Paste your prompt to get title and tag suggestions…" style={{ fontFamily: 'var(--f-mono)', fontSize: '13px' }} />
       </div>
       <div>
-        <label className="block text-gray-400 text-xs mb-1.5">Category</label>
-        <select value={category} onChange={e => setCategory(e.target.value)} className="input-field">
+        <label className="form-label-pv">Category</label>
+        <select value={category} onChange={e => setCategory(e.target.value)} className="select-pv" style={{ width: '100%' }}>
           {CATEGORIES.map(c => <option key={c}>{c}</option>)}
         </select>
       </div>
-
-      <button onClick={handleSuggest} disabled={loading} className="btn-primary w-full flex items-center justify-center gap-2 py-3">
-        {loading ? <><LoadingDots /><span className="ml-2">Analyzing...</span></> : <><Tag size={16} /> Suggest Title & Tags</>}
+      <button onClick={handleSuggest} disabled={loading} className="btn-pv btn-ai-pv" style={{ justifyContent: 'center', display: 'flex', gap: '8px', padding: '10px' }}>
+        {loading ? <><LoadingDots /><span style={{ marginLeft: '8px' }}>Analyzing…</span></> : <><Tag size={14} /> Suggest title & tags</>}
       </button>
-
       {(title || tags.length > 0) && (
-        <div className="animate-slide-up space-y-3">
+        <div className="animate-slide-up" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
           {title && (
-            <div className="bg-obsidian-900 border border-neon-blue/20 rounded-xl p-4">
-              <p className="text-gray-500 text-xs mb-2">Suggested Title</p>
-              <p className="text-white font-display font-semibold">{title}</p>
+            <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '14px 16px' }}>
+              <span className="section-eyebrow-pv" style={{ marginBottom: '6px' }}>Suggested title</span>
+              <p style={{ fontSize: '15px', fontWeight: 600, color: 'var(--text-primary)' }}>{title}</p>
             </div>
           )}
           {tags.length > 0 && (
-            <div className="bg-obsidian-900 border border-neon-purple/20 rounded-xl p-4">
-              <p className="text-gray-500 text-xs mb-3">Suggested Tags</p>
-              <div className="flex flex-wrap gap-2">
-                {tags.map(tag => (
-                  <span key={tag} className="badge bg-obsidian-700 text-gray-300 border border-obsidian-500 text-xs">
-                    #{tag}
-                  </span>
-                ))}
+            <div style={{ background: 'var(--bg-base)', border: '1px solid var(--border)', borderRadius: 'var(--r-md)', padding: '14px 16px' }}>
+              <span className="section-eyebrow-pv" style={{ marginBottom: '8px' }}>Suggested tags</span>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+                {tags.map(tag => <span key={tag} className="tag-pv">#{tag}</span>)}
               </div>
             </div>
           )}
-          <button
-            onClick={() => onUse({ title, tags, promptText })}
-            className="btn-primary w-full flex items-center justify-center gap-2"
-          >
-            Use These Suggestions <ArrowRight size={15} />
+          <button className="btn-pv btn-primary-pv" onClick={() => onUse({ title, tags, promptText })} style={{ justifyContent: 'center', display: 'flex', gap: '6px' }}>
+            Use these suggestions <ArrowRight size={14} />
           </button>
         </div>
       )}
@@ -410,61 +264,57 @@ const SmartTagsTab = ({ onUse }) => {
   );
 };
 
-// ── MAIN MODAL ─────────────────────────────────────────────────────────────
 const AIGeneratorModal = ({ isOpen, onClose, onUse }) => {
   const [activeTab, setActiveTab] = useState('generate');
 
   if (!isOpen) return null;
 
   const tabs = [
-    { id: 'generate', label: '✨ Generate' },
-    { id: 'improve', label: '⚡ Improve' },
-    { id: 'variations', label: '🎨 Variations' },
-    { id: 'tags', label: '🏷️ Smart Tags' },
+    { id: 'generate', label: 'Generate' },
+    { id: 'improve',  label: 'Improve' },
+    { id: 'variations', label: 'Variations' },
+    { id: 'tags',     label: 'Smart tags' },
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-2xl bg-obsidian-800 border border-obsidian-600 rounded-2xl shadow-2xl animate-slide-up flex flex-col max-h-[92vh]">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-obsidian-700">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-neon-blue to-neon-purple flex items-center justify-center">
-              <Sparkles size={16} className="text-white" />
+    <div className="modal-overlay-pv" onClick={onClose}>
+      <div className="modal-pv" style={{ maxWidth: '680px' }} onClick={e => e.stopPropagation()}>
+        <div className="modal-header-pv">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ width: '32px', height: '32px', background: 'var(--amber-subtle)', border: '1px solid rgba(138,106,26,0.2)', borderRadius: 'var(--r-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Sparkles size={15} color="var(--amber)" />
             </div>
             <div>
-              <h2 className="font-display font-bold text-white text-base leading-none">AI Prompt Generator</h2>
-              <p className="text-gray-500 font-mono text-xs mt-0.5">Powered by Groq · Llama 3.3</p>
+              <div className="modal-title-pv" style={{ fontSize: '17px' }}>AI Prompt Generator</div>
+              <div style={{ fontFamily: 'var(--f-mono)', fontSize: '10.5px', color: 'var(--text-tertiary)', marginTop: '1px' }}>Powered by Groq · Llama 3.3</div>
             </div>
           </div>
-          <button onClick={onClose} className="p-2 rounded-lg hover:bg-obsidian-700 text-gray-400 hover:text-white transition-colors">
-            <X size={18} />
-          </button>
+          <button className="icon-btn-pv" onClick={onClose}><X size={16} /></button>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 px-6 pt-4 pb-0">
+        <div style={{ padding: '12px 24px 0', borderBottom: '1px solid var(--border)', display: 'flex', gap: '2px' }}>
           {tabs.map(t => (
-            <TabBtn key={t.id} active={activeTab === t.id} onClick={() => setActiveTab(t.id)}>
+            <button
+              key={t.id}
+              onClick={() => setActiveTab(t.id)}
+              className={`ai-tab-pv ${activeTab === t.id ? 'active' : ''}`}
+              style={{ paddingBottom: '12px', borderRadius: '0', borderBottom: activeTab === t.id ? '2px solid var(--accent)' : '2px solid transparent', background: 'none' }}
+            >
               {t.label}
-            </TabBtn>
+            </button>
           ))}
         </div>
 
-        {/* Tab content */}
-        <div className="flex-1 overflow-y-auto px-6 py-4">
-          {activeTab === 'generate' && <GenerateTab onUse={(data) => { onUse(data); onClose(); }} />}
-          {activeTab === 'improve' && <ImproveTab onUse={(data) => { onUse(data); onClose(); }} />}
+        <div className="modal-body-pv">
+          {activeTab === 'generate'   && <GenerateTab onUse={(data) => { onUse(data); onClose(); }} />}
+          {activeTab === 'improve'    && <ImproveTab  onUse={(data) => { onUse(data); onClose(); }} />}
           {activeTab === 'variations' && <VariationsTab onUse={(data) => { onUse(data); onClose(); }} />}
-          {activeTab === 'tags' && <SmartTagsTab onUse={(data) => { onUse(data); onClose(); }} />}
+          {activeTab === 'tags'       && <SmartTagsTab onUse={(data) => { onUse(data); onClose(); }} />}
         </div>
 
-        {/* Footer note */}
-        <div className="px-6 py-3 border-t border-obsidian-700 bg-obsidian-900/50 rounded-b-2xl">
-          <p className="text-gray-600 font-mono text-xs text-center">
-            ⚡ Powered by Groq (Free) · Llama 3.3 70B · Get your key at console.groq.com
+        <div style={{ padding: '12px 24px', borderTop: '1px solid var(--border)', background: 'var(--bg-base)', borderRadius: '0 0 var(--r-lg) var(--r-lg)' }}>
+          <p style={{ fontFamily: 'var(--f-mono)', fontSize: '11px', color: 'var(--text-tertiary)', textAlign: 'center' }}>
+            Free API via Groq — get your key at console.groq.com
           </p>
         </div>
       </div>
