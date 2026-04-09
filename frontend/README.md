@@ -33,10 +33,10 @@ The app runs at `http://localhost:5173` by default.
 ## Environment Variables
 
 ```
-VITE_API_URL=http://localhost:5000
+VITE_API_URL=http://localhost:5000/api
 ```
 
-For production, set this to your deployed backend URL (e.g. on Railway or Render).
+For production, set this to your deployed backend URL including `/api` unless you rely on the client normalization in `src/services/api.js`.
 
 ## Project Structure
 

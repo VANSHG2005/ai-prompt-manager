@@ -6,3 +6,5 @@ build/
 *.log
 .vite/
 .vercel
+
+.vercel
