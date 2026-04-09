@@ -62,7 +62,7 @@ const Dashboard = () => {
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
   useEffect(() => {
-    Promise.all([userService.getStats(), promptService.getAll({ sort: 'newest' })])
+    Promise.all([userService.getStats(), promptService.getAll({ sort: 'newest', page: 1, limit: 6 })])
       .then(([s, p]) => { setStats(s.stats); setRecentPrompts(p.prompts.slice(0, 6)); })
       .catch(console.error)
       .finally(() => setLoading(false));

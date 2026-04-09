@@ -15,42 +15,88 @@ const createPrompt = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-// @desc    Get all prompts
+// @desc    Get all prompts with pagination
 const getPrompts = async (req, res, next) => {
   try {
-    const { category, aiTool, isFavorite, sort, search, tags } = req.query;
-    let query = { userId: req.user._id };
+    const { category, aiTool, isFavorite, sort, search, tags, page = 1, limit = 20 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    if (category)         query.category   = category;
-    if (aiTool)           query.aiTool     = aiTool;
-    if (isFavorite === 'true') query.isFavorite = true;
+    // Build base pipeline with userId filter
+    const basePipeline = [
+      { $match: { userId: req.user._id } },
+    ];
+
+    // Apply filters
+    let filterStage = {};
+    if (category) filterStage.category = category;
+    if (aiTool) filterStage.aiTool = aiTool;
+    if (isFavorite === 'true') filterStage.isFavorite = true;
 
     if (search) {
-      query.$or = [
-        { title:    { $regex: search, $options: 'i' } },
-        { tags:     { $in: [new RegExp(search, 'i')] } },
-        { category: { $regex: search, $options: 'i' } },
-      ];
+      basePipeline.push({
+        $match: {
+          $or: [
+            { title: { $regex: search, $options: 'i' } },
+            { tags: { $regex: search, $options: 'i' } },
+            { category: { $regex: search, $options: 'i' } },
+          ],
+        },
+      });
     }
     if (tags) {
       const tagList = tags.split(',').map(t => t.trim().toLowerCase());
-      query.tags = { $in: tagList };
+      basePipeline.push({ $match: { tags: { $in: tagList } } });
+    }
+    if (Object.keys(filterStage).length > 0) {
+      basePipeline.push({ $match: filterStage });
     }
 
+    // Apply sorting
     let sortOption = { createdAt: -1 };
-    if (sort === 'oldest')   sortOption = { createdAt: 1 };
+    if (sort === 'oldest') sortOption = { createdAt: 1 };
     if (sort === 'favorites') sortOption = { isFavorite: -1, createdAt: -1 };
-    if (sort === 'rating')   sortOption = { rating: -1, createdAt: -1 };
-    if (sort === 'usage')    sortOption = { usageCount: -1, createdAt: -1 };
+    if (sort === 'rating') sortOption = { rating: -1, createdAt: -1 };
+    if (sort === 'usage') sortOption = { usageCount: -1, createdAt: -1 };
+    basePipeline.push({ $sort: sortOption });
 
-    const prompts = await Prompt.find(query).sort(sortOption);
-    const total      = await Prompt.countDocuments({ userId: req.user._id });
-    const favorites  = await Prompt.countDocuments({ userId: req.user._id, isFavorite: true });
-    const categories = await Prompt.distinct('category', { userId: req.user._id });
+    // Use $facet to get prompts + stats in one query
+    const result = await Prompt.aggregate([
+      ...basePipeline,
+      {
+        $facet: {
+          metadata: [
+            {
+              $group: {
+                _id: null,
+                total: { $sum: 1 },
+                favorites: { $sum: { $cond: ['$isFavorite', 1, 0] } },
+              },
+            },
+          ],
+          categories: [{ $group: { _id: '$category' } }],
+          data: [{ $skip: skip }, { $limit: parseInt(limit) }],
+        },
+      },
+    ]);
+
+    const metadata = result[0].metadata[0] || { total: 0, favorites: 0 };
+    const categoryCount = result[0].categories.length;
+    const prompts = result[0].data;
 
     res.json({
-      success: true, count: prompts.length,
-      stats: { total, favorites, categoryCount: categories.length },
+      success: true,
+      count: prompts.length,
+      stats: {
+        total: metadata.total,
+        favorites: metadata.favorites,
+        categoryCount,
+      },
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total: metadata.total,
+        pages: Math.ceil(metadata.total / parseInt(limit)),
+      },
       prompts,
     });
   } catch (err) { next(err); }
@@ -132,14 +178,52 @@ const duplicatePrompt = async (req, res, next) => {
 // @desc    Dashboard stats
 const getStats = async (req, res, next) => {
   try {
-    const total     = await Prompt.countDocuments({ userId: req.user._id });
-    const favorites = await Prompt.countDocuments({ userId: req.user._id, isFavorite: true });
-    const categories = await Prompt.distinct('category', { userId: req.user._id });
-    const categoryBreakdown = await Prompt.aggregate([
+    const stats = await Prompt.aggregate([
       { $match: { userId: req.user._id } },
-      { $group: { _id: '$category', count: { $sum: 1 } } },
+      {
+        $facet: {
+          counts: [
+            {
+              $group: {
+                _id: null,
+                total: { $sum: 1 },
+                favorites: { $sum: { $cond: ['$isFavorite', 1, 0] } },
+              },
+            },
+          ],
+          categories: [{ $group: { _id: '$category', count: { $sum: 1 } } }],
+          aiTools: [{ $group: { _id: '$aiTool', count: { $sum: 1 } } }],
+          activity: [
+            {
+              $group: {
+                _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+                count: { $sum: 1 },
+              },
+            },
+            { $sort: { _id: 1 } },
+          ],
+        },
+      },
     ]);
-    res.json({ success: true, stats: { total, favorites, categoryCount: categories.length, categoryBreakdown } });
+
+    const result = stats[0];
+    const counts = result.counts[0] || { total: 0, favorites: 0 };
+    const categoryBreakdown = result.categories || [];
+    const aiToolBreakdown = result.aiTools || [];
+    const activity = result.activity || [];
+
+    res.json({
+      success: true,
+      stats: {
+        total: counts.total,
+        favorites: counts.favorites,
+        categoryCount: categoryBreakdown.length,
+        categoryBreakdown,
+        aiToolCount: aiToolBreakdown.length,
+        aiToolBreakdown,
+        activity,
+      },
+    });
   } catch (err) { next(err); }
 };
 

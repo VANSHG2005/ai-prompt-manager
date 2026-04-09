@@ -12,4 +12,17 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    minify: 'esbuild',
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['lucide-react', 'react-hot-toast', 'axios'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 500,
+  },
 })
