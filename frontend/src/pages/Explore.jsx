@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import { Copy, Plus, CheckCheck, Sparkles, Code2, Pen, Image, Video, TrendingUp, Globe } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { promptService } from '../services/promptService';
@@ -87,7 +86,7 @@ const Explore = () => {
   };
 
   return (
-    <DashboardLayout title="Explore">
+    <>
       {/* Header */}
       <div className="card-pv" style={{ padding: '22px', marginBottom: '22px', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: 'linear-gradient(90deg, var(--accent), #e8a87c, var(--sage))' }} />
@@ -186,7 +185,7 @@ const Explore = () => {
           );
         })}
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

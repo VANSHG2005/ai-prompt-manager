@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import { promptService } from '../services/promptService';
 import { userService } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
@@ -69,15 +68,15 @@ const Dashboard = () => {
   }, []);
 
   if (loading) return (
-    <DashboardLayout title="Dashboard">
+    <>
       <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '80px' }}><Spinner size="lg" /></div>
-    </DashboardLayout>
+    </>
   );
 
   const favPct = stats?.total ? Math.round((stats.favorites / stats.total) * 100) : 0;
 
   return (
-    <DashboardLayout title="Dashboard">
+    <>
       <div style={{ marginBottom: '28px' }}>
         <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: '28px', letterSpacing: '-0.03em', color: 'var(--text-primary)', marginBottom: '4px' }}>
           {greeting}, {user?.fullName?.split(' ')[0]}
@@ -201,7 +200,7 @@ const Dashboard = () => {
           </div>
         )}
       </div>
-    </DashboardLayout>
+    </>
   );
 };
 

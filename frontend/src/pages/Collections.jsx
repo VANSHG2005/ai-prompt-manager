@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import { promptService } from '../services/promptService';
 import { CATEGORIES } from '../utils/constants';
 import Spinner from '../components/common/Spinner';
@@ -37,7 +36,7 @@ const Collections = () => {
   };
 
   return (
-    <DashboardLayout title="Collections">
+    <>
       <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '22px' }}>
         Browse your prompts organised by category.
       </p>
@@ -164,7 +163,7 @@ const Collections = () => {
           })}
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 };
 

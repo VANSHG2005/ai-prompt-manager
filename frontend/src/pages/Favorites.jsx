@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import PromptCard from '../components/prompts/PromptCard';
 import PromptForm from '../components/prompts/PromptForm';
 import DeleteConfirm from '../components/prompts/DeleteConfirm';
@@ -34,7 +33,7 @@ const Favorites = () => {
   };
 
   return (
-    <DashboardLayout title="Favorites">
+    <>
       <div style={{ marginBottom: '20px' }}>
         <p style={{ fontFamily: 'var(--f-mono)', fontSize: '12.5px', color: 'var(--text-tertiary)' }}>
           {prompts.length} favourite prompt{prompts.length !== 1 ? 's' : ''}
@@ -86,7 +85,7 @@ const Favorites = () => {
         onConfirm={handleDeleteConfirm}
         loading={actionLoading}
       />
-    </DashboardLayout>
+    </>
   );
 };
 

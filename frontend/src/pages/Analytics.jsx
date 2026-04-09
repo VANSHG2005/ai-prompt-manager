@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import { userService } from '../services/userService';
 import { promptService } from '../services/promptService';
 import Spinner from '../components/common/Spinner';
@@ -31,9 +30,7 @@ const Analytics = () => {
   }, []);
 
   if (loading) return (
-    <DashboardLayout title="Analytics">
-      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '80px' }}><Spinner size="lg" /></div>
-    </DashboardLayout>
+    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '80px' }}><Spinner size="lg" /></div>
   );
 
   /* 30-day heatmap */
@@ -66,7 +63,7 @@ const Analytics = () => {
   const toolColors = { ChatGPT:'#2e9944', Claude:'#d4621c', Gemini:'#4a7fd4', Midjourney:'#8b4fc2', 'DALL-E':'#c7336e', 'Stable Diffusion':'#d4940a', Other:'#807d78' };
 
   return (
-    <DashboardLayout title="Analytics">
+    <>
       <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '24px' }}>
         Insights into your prompt library and usage patterns over time.
       </p>
@@ -198,7 +195,7 @@ const Analytics = () => {
           </div>
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 };
 

@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import { userService } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -104,16 +103,14 @@ const Profile = () => {
   ];
 
   if (fetching) return (
-    <DashboardLayout title="Profile">
-      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '80px' }}><Spinner size="lg" /></div>
-    </DashboardLayout>
+    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '80px' }}><Spinner size="lg" /></div>
   );
 
   /* shared label style */
   const FL = { display: 'block', fontSize: '12px', color: 'var(--text-secondary)', fontWeight: 500, marginBottom: '5px', fontFamily: 'var(--f-sans)' };
 
   return (
-    <DashboardLayout title="Profile">
+    <>
       <div style={{ maxWidth: '840px' }}>
 
         {/* Profile header */}
@@ -355,7 +352,7 @@ const Profile = () => {
           </div>
         </div>
       )}
-    </DashboardLayout>
+    </>
   );
 };
 

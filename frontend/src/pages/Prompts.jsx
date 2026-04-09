@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react';
-import DashboardLayout from '../components/layout/DashboardLayout';
 import PromptCard from '../components/prompts/PromptCard';
 import PromptListItem from '../components/prompts/PromptListItem';
 import PromptForm from '../components/prompts/PromptForm';
@@ -74,7 +73,7 @@ const Prompts = () => {
     .filter(Boolean).length + (filters.sort !== 'newest' ? 1 : 0);
 
   return (
-    <DashboardLayout title="Prompts">
+    <>
       {/* Toolbar */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px', flexWrap: 'wrap', gap: '10px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
@@ -194,7 +193,7 @@ const Prompts = () => {
         onSubmit={handleFormSubmit} initialData={editingPrompt || aiPrefill} loading={actionLoading} />
       <DeleteConfirm isOpen={!!deleteId} onClose={() => setDeleteId(null)}
         onConfirm={handleDeleteConfirm} loading={actionLoading} />
-    </DashboardLayout>
+    </>
   );
 };
 
