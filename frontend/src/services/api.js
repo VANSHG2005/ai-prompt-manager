@@ -1,30 +1,31 @@
 import axios from 'axios';
 
-function normalizeApiBaseUrl(value) {
-  const fallback = '/api';
+// ── Base URL resolution ───────────────────────────────────────────────────
+function resolveApiBaseUrl() {
+  const env = import.meta.env.VITE_API_URL;
 
-  if (!value) return fallback;
-
-  try {
-    const url = new URL(value, window.location.origin);
-    if (!url.pathname.endsWith('/api')) {
-      url.pathname = `${url.pathname.replace(/\/$/, '')}/api`;
-    }
-    return url.toString().replace(/\/$/, '');
-  } catch {
-    const trimmed = value.replace(/\/$/, '');
+  // If env var is provided, use it directly (strip trailing slash)
+  if (env) {
+    const trimmed = env.replace(/\/+$/, '');
+    // Ensure it ends with /api
     return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
   }
+
+  // Fallback: same-origin /api (works when frontend and backend are co-deployed,
+  // or when Vite proxy is set up in dev)
+  return '/api';
 }
 
-const API_URL = normalizeApiBaseUrl(import.meta.env.VITE_API_URL);
+const API_BASE_URL = resolveApiBaseUrl();
 
+// ── Axios instance ────────────────────────────────────────────────────────
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
+  timeout: 15000, // 15-second timeout — prevents infinite loading spinners
 });
 
-// Attach JWT token to every request
+// ── Request interceptor — attach JWT ─────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
@@ -34,15 +35,32 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Handle 401 — redirect to home
+// ── Response interceptor — handle errors globally ─────────────────────────
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    // Network / timeout errors
+    if (!error.response) {
+      const networkError = new Error(
+        error.code === 'ECONNABORTED'
+          ? 'Request timed out. Please check your connection and try again.'
+          : 'Unable to reach the server. Please check your connection.'
+      );
+      networkError.isNetworkError = true;
+      return Promise.reject(networkError);
+    }
+
+    // 401 — session expired
+    if (error.response.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
-      window.location.href = '/';
+      // Only redirect if not already on a public page
+      const publicPaths = ['/', '/login', '/register'];
+      if (!publicPaths.includes(window.location.pathname)) {
+        window.location.href = '/login';
+      }
     }
+
     return Promise.reject(error);
   }
 );

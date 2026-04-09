@@ -4,11 +4,11 @@ import PromptForm from '../components/prompts/PromptForm';
 import DeleteConfirm from '../components/prompts/DeleteConfirm';
 import usePrompts from '../hooks/usePrompts';
 import Spinner from '../components/common/Spinner';
-import { Heart } from 'lucide-react';
+import { Heart, AlertCircle, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Favorites = () => {
-  const { prompts, loading, actionLoading, fetchPrompts, updatePrompt, deletePrompt, toggleFavorite, duplicatePrompt } = usePrompts();
+  const { prompts, loading, error, actionLoading, fetchPrompts, updatePrompt, deletePrompt, toggleFavorite, duplicatePrompt } = usePrompts();
   const [editingPrompt, setEditingPrompt] = useState(null);
   const [showForm, setShowForm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
@@ -43,6 +43,16 @@ const Favorites = () => {
       {loading ? (
         <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '60px' }}>
           <Spinner size="lg" />
+        </div>
+      ) : error ? (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', paddingTop: '60px' }}>
+          <div style={{ width: '48px', height: '48px', background: 'var(--accent-subtle)', borderRadius: 'var(--r-md)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <AlertCircle size={22} color="var(--accent)" />
+          </div>
+          <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', textAlign: 'center' }}>{error}</p>
+          <button onClick={() => fetchPrompts({ isFavorite: true })} className="btn-pv" style={{ gap: '6px' }}>
+            <RefreshCw size={13} /> Retry
+          </button>
         </div>
       ) : prompts.length === 0 ? (
         <div className="empty-state-pv">

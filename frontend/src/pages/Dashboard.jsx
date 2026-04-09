@@ -4,7 +4,7 @@ import { promptService } from '../services/promptService';
 import { userService } from '../services/userService';
 import { useAuth } from '../context/AuthContext';
 import Spinner from '../components/common/Spinner';
-import { Sparkles, Heart, ArrowRight, Wand2, Plus, BarChart2, Copy, Clock } from 'lucide-react';
+import { Sparkles, Heart, ArrowRight, Wand2, Plus, BarChart2, Copy, Clock, AlertCircle, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const StatCard = ({ label, value, color }) => (
@@ -50,28 +50,61 @@ const QuickAction = ({ icon: Icon, label, desc, to, bg, color }) => (
   </Link>
 );
 
+const ErrorState = ({ message, onRetry }) => (
+  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 32px', gap: '16px' }}>
+    <div style={{ width: '52px', height: '52px', borderRadius: 'var(--r-md)', background: 'var(--accent-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <AlertCircle size={24} color="var(--accent)" />
+    </div>
+    <div style={{ textAlign: 'center' }}>
+      <h3 style={{ fontFamily: 'var(--f-serif)', fontSize: '20px', color: 'var(--text-primary)', marginBottom: '6px' }}>Unable to load dashboard</h3>
+      <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', maxWidth: '360px' }}>{message}</p>
+    </div>
+    <button onClick={onRetry} className="btn-pv" style={{ gap: '6px' }}>
+      <RefreshCw size={13} /> Try again
+    </button>
+  </div>
+);
+
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [recentPrompts, setRecentPrompts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const hour = new Date().getHours();
   const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
 
-  useEffect(() => {
-    Promise.all([userService.getStats(), promptService.getAll({ sort: 'newest' })])
-      .then(([s, p]) => { setStats(s.stats); setRecentPrompts(p.prompts.slice(0, 6)); })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  const loadData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [s, p] = await Promise.all([
+        userService.getStats(),
+        promptService.getAll({ sort: 'newest' }),
+      ]);
+      setStats(s.stats);
+      setRecentPrompts((p.prompts || []).slice(0, 6));
+    } catch (err) {
+      const msg = err.isNetworkError
+        ? err.message
+        : err.response?.data?.message || 'Failed to load dashboard data';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { loadData(); }, []);
 
   if (loading) return (
-    <>
-      <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '80px' }}><Spinner size="lg" /></div>
-    </>
+    <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '80px' }}>
+      <Spinner size="lg" />
+    </div>
   );
+
+  if (error) return <ErrorState message={error} onRetry={loadData} />;
 
   const favPct = stats?.total ? Math.round((stats.favorites / stats.total) * 100) : 0;
 
