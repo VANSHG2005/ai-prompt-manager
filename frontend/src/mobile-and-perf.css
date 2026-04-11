@@ -1,0 +1,324 @@
+/* ═══════════════════════════════════════════════════════
+   APPEND THIS ENTIRE FILE to the bottom of:
+   frontend/src/index.css
+   ─────────────────────────────────────────────────────
+   Fixes:
+   1. Loading speed — skeletons replace spinners, layout
+      paint happens immediately instead of after JS
+   2. Full mobile responsiveness for all screen sizes
+═══════════════════════════════════════════════════════ */
+
+/* ── SKELETON LOADER (replaces blank spinner screens) ─ */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.skeleton-pv {
+  background: linear-gradient(
+    90deg,
+    var(--bg-muted) 25%,
+    var(--bg-subtle) 50%,
+    var(--bg-muted) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: var(--r-sm);
+}
+
+.skeleton-card-pv {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ── PERFORMANCE: content-visibility on long lists ──── */
+.prompt-card-pv {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 220px;
+}
+
+/* ══════════════════════════════════════════════════════
+   MOBILE RESPONSIVE — breakpoints
+   sm  = 640px   (large phones landscape)
+   md  = 768px   (tablets)
+   lg  = 1024px  (small laptops)
+══════════════════════════════════════════════════════ */
+
+/* ── SIDEBAR: hidden on mobile, slide-in drawer ─────── */
+.sidebar-pv {
+  transition: transform 0.25s ease, width 0.25s ease;
+}
+
+.sidebar-overlay-pv {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  z-index: 99;
+  backdrop-filter: blur(2px);
+}
+
+/* ── MAIN CONTENT: full width on mobile ─────────────── */
+@media (max-width: 767px) {
+  /* Sidebar becomes a drawer */
+  .sidebar-pv {
+    transform: translateX(-100%);
+    z-index: 200;
+  }
+  .sidebar-pv.open-pv {
+    transform: translateX(0);
+  }
+  .sidebar-overlay-pv.open-pv {
+    display: block;
+  }
+
+  /* Main area fills screen */
+  .main-pv {
+    margin-left: 0 !important;
+  }
+
+  /* Topbar: tighter on mobile */
+  .topbar-pv {
+    padding: 0 16px;
+    height: 48px;
+    gap: 8px;
+  }
+  .topbar-title {
+    font-size: 17px;
+  }
+
+  /* Page content: less padding */
+  .main-pv main > div {
+    padding: 16px !important;
+  }
+
+  /* Stat cards: 2 columns on mobile */
+  .stat-grid-mobile {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Prompt cards: single column */
+  .prompt-grid-mobile {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Analytics: stack vertically */
+  .analytics-grid-mobile {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dashboard two-col → one col */
+  .dashboard-split-mobile {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Modal: full screen on mobile */
+  .modal-pv {
+    margin: 0;
+    max-width: 100% !important;
+    max-height: 100dvh !important;
+    border-radius: var(--r-lg) var(--r-lg) 0 0 !important;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+  }
+  .modal-overlay-pv {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  /* Search + filter: stack vertically */
+  .search-filter-mobile {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .search-filter-mobile .select-pv {
+    width: 100%;
+  }
+  .search-filter-mobile .search-wrap-pv {
+    flex: none;
+    width: 100%;
+  }
+
+  /* Toolbar: two rows */
+  .toolbar-mobile {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .toolbar-mobile > div {
+    justify-content: flex-end;
+  }
+
+  /* AI generator modal tabs: scrollable */
+  .ai-tabs-mobile {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .ai-tabs-mobile::-webkit-scrollbar { display: none; }
+
+  /* Version history: stack panels */
+  .version-grid-mobile {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Template modal: stack panels */
+  .template-grid-mobile {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Bulk toolbar text: shorten labels */
+  .bulk-label-hide { display: none !important; }
+
+  /* Collections accordion */
+  .collections-grid-mobile {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Analytics grids */
+  .analytics-4col-mobile {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* Profile tabs: scrollable row */
+  .tabs-pv {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+  }
+  .tabs-pv::-webkit-scrollbar { display: none; }
+
+  /* Profile grid: single column */
+  .profile-grid-mobile {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dashboard recent prompts: 1 col */
+  .recent-grid-mobile {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Features grid on landing */
+  .features-grid-pv {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Landing hero: stacked */
+  .hero-split-mobile {
+    grid-template-columns: 1fr !important;
+  }
+  .hero-split-mobile > *:last-child {
+    display: none; /* hide hero card on small screens */
+  }
+
+  /* Landing testimonials: 1 col */
+  .testimonials-grid-mobile {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Stat cards: full stat val */
+  .stat-val-pv {
+    font-size: 28px;
+  }
+
+  /* Prompt list item: simplified */
+  .prompt-list-meta-hide { display: none !important; }
+
+  /* NavLink labels in sidebar */
+  .nav-item-pv span { display: block; }
+}
+
+/* ── TABLET: 768px–1023px ────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  /* Sidebar collapses to icon-only */
+  .sidebar-pv {
+    width: 56px !important;
+    min-width: 56px !important;
+    overflow: hidden;
+  }
+  .sidebar-pv .nav-item-pv span,
+  .sidebar-pv .nav-section-label-pv,
+  .sidebar-pv .user-chip-pv > div,
+  .sidebar-pv .logo-icon-pv + div {
+    display: none !important;
+  }
+  .sidebar-pv .nav-item-pv {
+    justify-content: center;
+    padding: 10px;
+  }
+  .sidebar-pv .user-chip-pv {
+    justify-content: center;
+  }
+  .sidebar-pv .logo-icon-pv {
+    margin: 0 auto;
+  }
+
+  .main-pv {
+    margin-left: 56px !important;
+  }
+
+  /* 2-col prompt grid on tablet */
+  .prompt-grid-mobile {
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  /* 2-col stat cards */
+  .stat-grid-mobile {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+/* ── HAMBURGER MENU BUTTON (shown on mobile only) ────── */
+.hamburger-pv {
+  display: none;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+@media (max-width: 767px) {
+  .hamburger-pv { display: flex; }
+}
+
+/* ── TOPBAR SEARCH: hide on mobile, keep icon ─────────── */
+@media (max-width: 767px) {
+  .topbar-search-full { display: none !important; }
+  .topbar-search-icon { display: flex !important; }
+}
+@media (min-width: 768px) {
+  .topbar-search-icon { display: none !important; }
+}
+
+/* ── COMMAND PALETTE: full-width on mobile ────────────── */
+@media (max-width: 640px) {
+  .modal-overlay-pv > .modal-pv[data-cmd] {
+    margin: 0 8px;
+    max-width: calc(100vw - 16px) !important;
+  }
+}
+
+/* ── SAFE AREA (notch) support ────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .modal-pv {
+    padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  }
+  .topbar-pv {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+}

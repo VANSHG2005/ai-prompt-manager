@@ -1,0 +1,93 @@
+/* ═══════════════════════════════════════════════════════════════
+   FEATURE ADDITIONS — append to end of index.css
+   New styles for: AI button, template badge, bulk toolbar,
+   command palette, version history diff
+═══════════════════════════════════════════════════════════════ */
+
+/* ── AI Generate button ── */
+.btn-ai-pv {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--f-sans); font-size: 13px; font-weight: 500;
+  padding: 7px 14px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--amber-border);
+  background: var(--amber-subtle);
+  color: var(--amber-text);
+  cursor: pointer; transition: all 0.13s; line-height: 1;
+  text-decoration: none; white-space: nowrap;
+}
+.btn-ai-pv:hover {
+  background: var(--amber);
+  color: #ffffff;
+  border-color: var(--amber);
+}
+.btn-ai-pv:active { transform: scale(0.98); }
+
+/* ── Bulk toolbar animation ── */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateX(-50%) translateY(16px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* ── Template variable highlight ── */
+.template-var-pv {
+  background: var(--amber-subtle);
+  color: var(--amber);
+  border: 1px dashed var(--amber-border);
+  border-radius: 3px;
+  padding: 0 3px;
+  font-weight: 500;
+  font-family: var(--f-mono);
+  font-size: 0.9em;
+}
+
+/* ── Version diff tokens ── */
+.diff-added-pv {
+  background: rgba(42,145,72,0.15);
+  color: var(--sage);
+  border-radius: 2px;
+  padding: 0 1px;
+}
+.diff-removed-pv {
+  background: rgba(196,68,26,0.12);
+  color: var(--accent);
+  text-decoration: line-through;
+  border-radius: 2px;
+  padding: 0 1px;
+}
+
+/* ── Command palette input ── */
+.cmd-input-pv {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  color: var(--text-primary);
+  font-family: var(--f-sans);
+}
+.cmd-input-pv::placeholder { color: var(--text-tertiary); }
+
+/* ── Selection checkbox ── */
+.selection-checkbox-pv {
+  position: absolute;
+  top: 10px; left: 10px;
+  z-index: 10;
+  width: 20px; height: 20px;
+  border-radius: 5px;
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all .12s;
+}
+
+/* Dark mode adjustments for new components */
+[data-theme="dark"] .btn-ai-pv {
+  background: var(--amber-subtle);
+  border-color: var(--amber-border);
+  color: var(--amber-text);
+}
+[data-theme="dark"] .btn-ai-pv:hover {
+  background: var(--amber);
+  color: #1A1814;
+}
