@@ -53,12 +53,13 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // ── Routes ──────────────────────────────────────────────────────────────────
-app.use('/api/auth',      require('./routes/authRoutes'));
-app.use('/api/user',      require('./routes/userRoutes'));
-app.use('/api/prompts',   require('./routes/promptRoutes'));
-app.use('/api/ai',        require('./routes/aiRoutes'));
-app.use('/api/workflows', require('./routes/workflowRoutes'));
-app.use('/api/share',     require('./routes/shareRoutes'));
+app.use('/api/auth',         require('./routes/authRoutes'));
+app.use('/api/user',         require('./routes/userRoutes'));
+app.use('/api/prompts/bulk', require('./routes/bulkRoutes'));  // before /api/prompts
+app.use('/api/prompts',      require('./routes/promptRoutes'));
+app.use('/api/ai',           require('./routes/aiRoutes'));
+app.use('/api/workflows',    require('./routes/workflowRoutes'));
+app.use('/api/share',        require('./routes/shareRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) =>

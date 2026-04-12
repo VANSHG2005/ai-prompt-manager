@@ -5,21 +5,28 @@ import { ThemeProvider } from './context/ThemeContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import DashboardLayout from './components/layout/DashboardLayout';
 
-import Landing from './pages/Landing';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import Dashboard from './pages/Dashboard';
-import Prompts from './pages/Prompts';
-import Favorites from './pages/Favorites';
-import Profile from './pages/Profile';
-import Analytics from './pages/Analytics';
+import Landing     from './pages/Landing';
+import Login       from './pages/Login';
+import Register    from './pages/Register';
+import Dashboard   from './pages/Dashboard';
+import Prompts     from './pages/Prompts';
+import Favorites   from './pages/Favorites';
+import Profile     from './pages/Profile';
+import Analytics   from './pages/Analytics';
 import Collections from './pages/Collections';
-import Explore from './pages/Explore';
+import Explore     from './pages/Explore';
+import Playground  from './pages/Playground';
+import Chains      from './pages/Chains';
 
 function App() {
   return (
     <ThemeProvider>
-      <BrowserRouter>
+      {/*
+        future flags suppress React Router v6 warnings about upcoming v7 changes.
+        v7_startTransition  — wraps state updates in React.startTransition
+        v7_relativeSplatPath — fixes relative route resolution inside splat routes
+      */}
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
           <Toaster
             position="bottom-right"
@@ -40,13 +47,14 @@ function App() {
               error:   { iconTheme: { primary: '#C4441A', secondary: '#ffffff' } },
             }}
           />
+
           <Routes>
-            {/* Public routes */}
+            {/* ── Public routes ──────────────────────────── */}
             <Route path="/"         element={<Landing />} />
             <Route path="/login"    element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Protected routes — redirects to /login if not authenticated */}
+            {/* ── Protected routes ───────────────────────── */}
             <Route element={<ProtectedRoute />}>
               <Route element={<DashboardLayout />}>
                 <Route path="/dashboard"   element={<Dashboard />} />
@@ -55,11 +63,13 @@ function App() {
                 <Route path="/analytics"   element={<Analytics />} />
                 <Route path="/collections" element={<Collections />} />
                 <Route path="/explore"     element={<Explore />} />
+                <Route path="/playground"  element={<Playground />} />
+                <Route path="/chains"      element={<Chains />} />
                 <Route path="/profile"     element={<Profile />} />
               </Route>
             </Route>
 
-            {/* Catch-all */}
+            {/* ── Catch-all ──────────────────────────────── */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </AuthProvider>
