@@ -46,7 +46,7 @@ const navGroups = [
   },
 ];
 
-const Sidebar = ({ onClose }) => {
+const Sidebar = ({ onClose, className = 'sidebar-pv' }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [sidebarUser, setSidebarUser] = useState(user);
@@ -98,7 +98,7 @@ const Sidebar = ({ onClose }) => {
   const avatarColor = AVATAR_COLORS[sidebarUser?.avatarColor] || AVATAR_COLORS.terracotta;
 
   return (
-    <aside className="sidebar-pv">
+    <aside className={className}>
 
       {/* ── Logo row ────────────────────────────────────── */}
       <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid var(--sidebar-divider)' }}>

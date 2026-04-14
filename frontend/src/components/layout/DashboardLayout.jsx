@@ -33,9 +33,10 @@ const DashboardLayout = () => {
       />
 
       {/* Sidebar — gets open-pv class on mobile */}
-      <div className={`sidebar-pv ${sidebarOpen ? 'open-pv' : ''}`}>
-        <Sidebar onClose={closeSidebar} />
-      </div>
+      <Sidebar
+        onClose={closeSidebar}
+        className={`sidebar-pv ${sidebarOpen ? 'open-pv' : ''}`}
+      />
 
       {/* Main content */}
       <div className="main-pv" style={{ flex: 1, minWidth: 0 }}>
