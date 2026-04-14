@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { userService } from '../../services/userService';
 import {
@@ -103,7 +103,11 @@ const Sidebar = ({ onClose, className = 'sidebar-pv' }) => {
       {/* ── Logo row ────────────────────────────────────── */}
       <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid var(--sidebar-divider)' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <Link
+            to="/"
+            onClick={onClose}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
+          >
             <div className="logo-icon-pv"><Zap size={14} color="white" /></div>
             <div>
               <div style={{
@@ -119,7 +123,7 @@ const Sidebar = ({ onClose, className = 'sidebar-pv' }) => {
                 AI Manager
               </div>
             </div>
-          </div>
+          </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
             <ThemeToggle />
             {onClose && (

@@ -1,4 +1,4 @@
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { LogOut, Search, Menu } from 'lucide-react';
 
@@ -13,7 +13,10 @@ const Navbar = ({ title = 'Dashboard', onOpenSearch, onOpenMenu }) => {
         <button onClick={onOpenMenu} className="hamburger-pv" aria-label="Open navigation menu">
           <Menu size={16} />
         </button>
-        <h2 className="topbar-title">{title}</h2>
+        <h2 className="topbar-title topbar-title-page">{title}</h2>
+        <Link to="/" className="topbar-title topbar-title-app" style={{ textDecoration: 'none' }}>
+          PromptVault
+        </Link>
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

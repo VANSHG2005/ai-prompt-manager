@@ -293,6 +293,8 @@
 }
 @media (max-width: 767px) {
   .hamburger-pv { display: flex; }
+  .topbar-title-page { display: none !important; }
+  .topbar-title-app { display: block !important; }
 }
 
 /* ── TOPBAR SEARCH: hide on mobile, keep icon ─────────── */
@@ -302,6 +304,8 @@
 }
 @media (min-width: 768px) {
   .topbar-search-icon { display: none !important; }
+  .topbar-title-page { display: block !important; }
+  .topbar-title-app { display: none !important; }
 }
 
 /* ── COMMAND PALETTE: full-width on mobile ────────────── */
