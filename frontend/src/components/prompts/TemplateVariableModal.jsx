@@ -78,7 +78,7 @@ const TemplateVariableModal = ({ isOpen, onClose, prompt }) => {
           </div>
         </div>
 
-        <div className="modal-body-pv" style={{ display: 'grid', gridTemplateColumns: hasVars ? '1fr 1fr' : '1fr', gap: '20px' }}>
+        <div className="modal-body-pv template-grid-mobile" style={{ display: 'grid', gridTemplateColumns: hasVars ? '1fr 1fr' : '1fr', gap: '20px' }}>
           {/* Left: variable inputs */}
           {hasVars && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

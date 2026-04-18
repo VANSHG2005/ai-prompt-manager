@@ -181,7 +181,7 @@ const Dashboard = () => {
       </div>
 
       {/* Recent prompts */}
-      <div>
+      <div className="recent-grid-mobile" style={{ display: 'grid', gap: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
           <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
             <Clock size={15} color="var(--text-tertiary)" /> Recent prompts

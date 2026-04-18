@@ -609,9 +609,9 @@ const Profile = () => {
       <div>
 
         {/* ─── Profile header card ─────────────────────────── */}
-        <div className="card-pv" style={{ padding: 24, marginBottom: 20, position: 'relative', overflow: 'hidden' }}>
+        <div className="card-pv analytics-heatmap-wrap" style={{ padding: 24, marginBottom: 20, position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, ${avatarColor}, ${avatarColor}80)` }} />
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap' }}>
+          <div className="profile-header-mobile" style={{ display: 'flex', alignItems: 'flex-start', gap: 20, flexWrap: 'wrap' }}>
 
             {/* Avatar with streak badge */}
             <div style={{ position: 'relative', flexShrink: 0 }}>
@@ -682,7 +682,7 @@ const Profile = () => {
             </div>
 
             {/* Stat pills */}
-            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+            <div className="profile-stat-pills-mobile" style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
               <StatPill icon={Sparkles} label="Prompts"    value={promptCount}               color="#3B72D4" />
               <StatPill icon={Heart}    label="Favourites" value={stats?.favorites || 0}     color="#C4441A" />
               <StatPill icon={Flame}    label="Streak"     value={streak}                    color="#E05828" />
@@ -714,7 +714,7 @@ const Profile = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
             {/* Achievements grid */}
-            <div className="card-pv" style={{ padding: 22 }}>
+            <div className="card-pv achievements-grid-mobile" style={{ padding: 22 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
                 <p style={{ fontSize: 14, fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 7 }}>
                   <Award size={14} color="var(--text-tertiary)" /> Achievements
@@ -731,7 +731,7 @@ const Profile = () => {
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-                {achieves.map(a => <Achievement key={a.key} {...a} />)}
+                {achieves.map(({ key, ...achievement }) => <Achievement key={key} {...achievement} />)}
               </div>
             </div>
 

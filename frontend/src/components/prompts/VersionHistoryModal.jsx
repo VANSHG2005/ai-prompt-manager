@@ -155,7 +155,7 @@ const VersionHistoryModal = ({ isOpen, onClose, prompt, onRestore }) => {
           <button className="icon-btn-pv" onClick={onClose}><X size={16} /></button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '220px 1fr', flex: 1, overflow: 'hidden', minHeight: 0 }}>
+        <div className="version-grid-mobile" style={{ display: 'grid', gridTemplateColumns: '220px 1fr', flex: 1, overflow: 'hidden', minHeight: 0 }}>
           {/* Timeline sidebar */}
           <div style={{ borderRight: '1px solid var(--border)', overflowY: 'auto', padding: '12px 8px' }}>
             {loading ? (

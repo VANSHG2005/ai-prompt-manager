@@ -550,7 +550,7 @@ const Chains = () => {
       )}
 
       {/* ─── Chain name + user input ─────────────────────── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+      <div className="chains-grid-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
         <div>
           <label style={{
             display: 'block', fontSize: 11.5, fontWeight: 500,

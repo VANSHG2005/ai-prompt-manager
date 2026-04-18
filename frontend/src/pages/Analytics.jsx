@@ -141,7 +141,7 @@ const Analytics = () => {
       </p>
 
       {/* Metric cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '22px' }}>
+      <div className="analytics-4col-mobile" style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: '12px', marginBottom: '22px' }}>
         <MetricCard icon={BarChart2} label="Total prompts"    value={stats?.total}           color="#4a7fd4" />
         <MetricCard icon={Award}     label="Favourites"       value={stats?.favorites}        color="#c84b1a" />
         <MetricCard icon={Clock}     label="Avg length"       value={`${avgLen}`} sub="chars"  color="#8a6a1a" />
@@ -149,7 +149,7 @@ const Analytics = () => {
       </div>
 
       {/* Heatmap */}
-      <div className="card-pv" style={{ padding: '20px 20px 18px', marginBottom: '14px' }}>
+      <div className="card-pv analytics-heatmap-wrap" style={{ padding: '20px 20px 18px', marginBottom: '14px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
           <p style={{ fontFamily: 'var(--f-sans)', fontSize: '15px', color: 'var(--text-primary)' }}>
             <span style={{ fontWeight: 700 }}>{submissions}</span> submissions in the past one year

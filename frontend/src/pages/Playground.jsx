@@ -105,7 +105,7 @@ const Playground = () => {
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
+      <div className="playground-grid-mobile" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, alignItems: 'start' }}>
         {/* Left: Input panel */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Prompt picker */}

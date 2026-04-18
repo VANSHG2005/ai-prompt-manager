@@ -106,19 +106,29 @@ const Sidebar = ({ onClose, className = 'sidebar-pv' }) => {
           <Link
             to="/"
             onClick={onClose}
-            style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              textDecoration: 'none',
+              minWidth: 0,
+              flex: 1,
+              marginRight: 8,
+            }}
           >
             <div className="logo-icon-pv"><Zap size={14} color="white" /></div>
-            <div>
+            <div style={{ minWidth: 0 }}>
               <div style={{
                 fontFamily: 'var(--f-serif)', fontSize: 17,
                 color: 'var(--sidebar-text-active)', letterSpacing: '-0.01em', lineHeight: 1,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
                 PromptVault
               </div>
               <div style={{
                 fontFamily: 'var(--f-mono)', fontSize: 9.5, color: 'var(--sidebar-text)',
                 letterSpacing: '0.09em', textTransform: 'uppercase', marginTop: 2, opacity: 0.6,
+                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
               }}>
                 AI Manager
               </div>
@@ -152,9 +162,12 @@ const Sidebar = ({ onClose, className = 'sidebar-pv' }) => {
                   to={to}
                   onClick={onClose}
                   className={({ isActive }) => `nav-item-pv ${isActive ? 'active' : ''}`}
+                  style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}
                 >
-                  <Icon size={15} />
-                  <span>{label}</span>
+                  <div className="nav-icon-pv" style={{ width: 20, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+                    <Icon size={15} />
+                  </div>
+                  <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{label}</span>
                 </NavLink>
               ))}
             </div>
@@ -164,8 +177,8 @@ const Sidebar = ({ onClose, className = 'sidebar-pv' }) => {
 
       {/* ── Footer: user chip + logout ───────────────────── */}
       <div style={{ padding: 10, borderTop: '1px solid var(--sidebar-divider)' }}>
-        <NavLink to="/profile" onClick={onClose} style={{ textDecoration: 'none' }}>
-          <div className="user-chip-pv">
+        <NavLink to="/profile" onClick={onClose} style={{ textDecoration: 'none', display: 'block', width: '100%', minWidth: 0 }}>
+          <div className="user-chip-pv" style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
 
             {/* Avatar circle with real initials — never "?" */}
             <div
@@ -207,10 +220,23 @@ const Sidebar = ({ onClose, className = 'sidebar-pv' }) => {
         <button
           onClick={handleLogout}
           className="nav-item-pv"
-          style={{ color: 'rgba(224,88,40,0.65)', marginTop: 1, cursor: 'pointer' }}
+          style={{ 
+            color: 'rgba(224,88,40,0.65)', 
+            marginTop: 1, 
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            width: '100%',
+            background: 'none',
+            border: 'none',
+            padding: '8px 10px'
+          }}
         >
-          <LogOut size={14} />
-          <span>Logout</span>
+          <div className="nav-icon-pv" style={{ width: 20, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
+            <LogOut size={14} />
+          </div>
+          <span style={{ whiteSpace: 'nowrap' }}>Logout</span>
         </button>
       </div>
     </aside>
