@@ -14,13 +14,13 @@ const handleValidationErrors = (req, res, next) => {
 
 const registerValidation = [
   body('fullName').trim().notEmpty().withMessage('Full name is required').isLength({ max: 100 }),
-  body('email').isEmail().withMessage('Please enter a valid email').normalizeEmail(),
+  body('email').trim().isEmail().withMessage('Please enter a valid email').normalizeEmail({ gmail_remove_dots: false }),
   body('password').isLength({ min: 6 }).withMessage('Password must be at least 6 characters'),
   handleValidationErrors,
 ];
 
 const loginValidation = [
-  body('email').isEmail().withMessage('Please enter a valid email').normalizeEmail(),
+  body('email').trim().isEmail().withMessage('Please enter a valid email').normalizeEmail({ gmail_remove_dots: false }),
   body('password').notEmpty().withMessage('Password is required'),
   handleValidationErrors,
 ];
