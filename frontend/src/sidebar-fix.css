@@ -1,0 +1,71 @@
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR WIDTH FIX
+   Ensures the sidebar stays at full 220px on desktop and the
+   logo row never overflows its container.
+   Import this LAST in main.jsx (after mobile-fix.css).
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Desktop: always full-width sidebar ─────────────────────── */
+@media (min-width: 1024px) {
+  .sidebar-pv {
+    width: 220px !important;
+    min-width: 220px !important;
+    max-width: 220px !important;
+    overflow: hidden !important;
+  }
+
+  /* Restore all text labels at desktop */
+  .sidebar-pv .nav-item-pv span,
+  .sidebar-pv .nav-section-label-pv,
+  .sidebar-pv .user-chip-pv > div:not(.avatar-pv),
+  .sidebar-pv .logo-icon-pv + div {
+    display: block !important;
+  }
+
+  .sidebar-pv .nav-item-pv {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 8px 10px !important;
+    gap: 10px !important;
+  }
+}
+
+/* ── Logo row: hard clip at all sizes ───────────────────────── */
+.sidebar-pv > div:first-child {
+  overflow: hidden !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}
+
+/* The flex row inside the logo area */
+.sidebar-pv > div:first-child > div {
+  overflow: hidden !important;
+  width: 100% !important;
+  flex-wrap: nowrap !important;
+}
+
+/* The logo Link element */
+.sidebar-pv > div:first-child > div > a {
+  min-width: 0 !important;
+  overflow: hidden !important;
+  flex: 1 1 0% !important;
+}
+
+/* Text container inside the logo Link */
+.sidebar-pv > div:first-child > div > a > div:last-child {
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Both text lines inside the logo */
+.sidebar-pv > div:first-child > div > a > div:last-child > div {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Controls wrapper — never shrink */
+.sidebar-pv > div:first-child > div > div:last-child {
+  flex-shrink: 0 !important;
+}

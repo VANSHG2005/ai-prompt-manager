@@ -13,6 +13,7 @@ import {
 import Spinner from '../components/common/Spinner';
 import { MiniSpinner } from '../components/common/Spinner';
 import { AI_TOOLS } from '../utils/constants';
+import { getUserInitials } from '../utils/avatar';
 
 const AVATAR_COLORS = {
   terracotta: '#C4441A',
@@ -579,7 +580,7 @@ const Profile = () => {
   ];
 
   const avatarColor = AVATAR_COLORS[profile.avatarColor] || AVATAR_COLORS.terracotta;
-  const initials    = profile.fullName?.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || '?';
+  const initials    = getUserInitials(profile);
   const unlockedCount = achieves.filter(a => a.unlocked).length;
 
   const FL = {
@@ -620,7 +621,7 @@ const Profile = () => {
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                 boxShadow: `0 0 0 3px ${avatarColor}30`,
               }}>
-                <span style={{ fontFamily: 'var(--f-serif)', fontSize: 28, color: 'white' }}>
+                <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 600, fontSize: 26, color: 'white', lineHeight: 1, textTransform: 'uppercase', letterSpacing: '-0.01em' }}>
                   {initials}
                 </span>
               </div>
@@ -856,7 +857,7 @@ const Profile = () => {
               </div>
               <div style={{ marginTop: 14, display: 'flex', alignItems: 'center', gap: 10 }}>
                 <div style={{ width: 44, height: 44, borderRadius: '50%', background: avatarColor, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 0 3px ${avatarColor}30` }}>
-                  <span style={{ fontFamily: 'var(--f-serif)', fontSize: 18, color: 'white' }}>{initials}</span>
+                  <span style={{ fontFamily: 'var(--f-sans)', fontWeight: 600, fontSize: 16, color: 'white', lineHeight: 1, textTransform: 'uppercase' }}>{initials}</span>
                 </div>
                 <div>
                   <p style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>{profile.fullName}</p>

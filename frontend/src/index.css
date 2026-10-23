@@ -644,9 +644,18 @@
 
   /* ── AVATAR ── */
   .avatar-pv {
-    border-radius: 50%; display: flex; align-items: center; justify-content: center;
-    font-weight: 500; color: white; flex-shrink: 0; font-family: var(--f-sans);
+    border-radius: 50%;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-align: center !important;
+    line-height: 1 !important;
+    font-weight: 600;
+    color: white;
+    flex-shrink: 0;
+    font-family: var(--f-sans);
     background: var(--accent);
+    user-select: none;
   }
 
   /* ── SECTION EYEBROW ── */

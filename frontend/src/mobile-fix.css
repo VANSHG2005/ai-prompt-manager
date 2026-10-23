@@ -199,7 +199,7 @@ nav[style*="sticky"] {
   }
   .sidebar-pv .nav-item-pv span,
   .sidebar-pv .nav-section-label-pv,
-  .sidebar-pv .user-chip-pv > div,
+  .sidebar-pv .user-chip-pv > div:not(.avatar-pv),
   .sidebar-pv .logo-icon-pv + div {
     display: none !important;
   }
@@ -260,7 +260,7 @@ nav[style*="sticky"] {
   /* Restore all sidebar labels */
   .sidebar-pv .nav-item-pv span,
   .sidebar-pv .nav-section-label-pv,
-  .sidebar-pv .user-chip-pv > div,
+  .sidebar-pv .user-chip-pv > div:not(.avatar-pv),
   .sidebar-pv .logo-icon-pv + div {
     display: block !important;
   }

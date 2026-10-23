@@ -7,6 +7,7 @@ import {
   FolderOpen, Compass, Zap, X, FlaskConical, Link2,
 } from 'lucide-react';
 import ThemeToggle from '../common/ThemeToggle';
+import { getUserInitials } from '../../utils/avatar';
 
 const AVATAR_COLORS = {
   terracotta: '#C4441A',
@@ -51,106 +52,120 @@ const Sidebar = ({ onClose, className = 'sidebar-pv' }) => {
   const navigate = useNavigate();
   const [sidebarUser, setSidebarUser] = useState(user);
 
-  useEffect(() => {
-    setSidebarUser(user);
-  }, [user]);
+  useEffect(() => { setSidebarUser(user); }, [user]);
 
   useEffect(() => {
     let mounted = true;
-
-    userService
-      .getProfile()
+    userService.getProfile()
       .then(({ user: profileUser }) => {
         if (!mounted || !profileUser) return;
         setSidebarUser(prev => ({ ...prev, ...profileUser }));
       })
-      .catch(() => {
-        // Keep auth context data when profile fetch fails.
-      });
-
-    return () => {
-      mounted = false;
-    };
+      .catch(() => {});
+    return () => { mounted = false; };
   }, []);
 
   const handleLogout = () => { logout(); navigate('/'); };
 
-  // Sidebar should follow profile page identity order.
   const displayName =
     sidebarUser?.username ||
     sidebarUser?.fullName ||
     sidebarUser?.email?.split('@')[0] ||
     'My Account';
 
-  const initials = useMemo(() => {
-    const source = sidebarUser?.username || sidebarUser?.fullName || sidebarUser?.email || '';
-    if (!source) return '…';
-
-    const cleaned = source.replace(/@/g, ' ').trim();
-    const parts = cleaned.split(/\s+/).filter(Boolean);
-
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return cleaned.slice(0, 2).toUpperCase();
-  }, [sidebarUser]);
+  const initials = useMemo(() => getUserInitials(sidebarUser), [sidebarUser]);
 
   const avatarColor = AVATAR_COLORS[sidebarUser?.avatarColor] || AVATAR_COLORS.terracotta;
 
   return (
     <aside className={className}>
 
-      {/* ── Logo row ────────────────────────────────────── */}
-      <div style={{ padding: '20px 18px 16px', borderBottom: '1px solid var(--sidebar-divider)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* ── Logo row ── */}
+      <div style={{
+        padding: '16px 12px 14px',
+        borderBottom: '1px solid var(--sidebar-divider)',
+        /* Prevent children from ever breaking out */
+        overflow: 'hidden',
+      }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          /* Space between logo-link and controls */
+          justifyContent: 'space-between',
+          gap: 4,
+          overflow: 'hidden',
+        }}>
+
+          {/* Logo link — takes all remaining space, clips */}
           <Link
             to="/"
             onClick={onClose}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: 10,
+              gap: 8,
               textDecoration: 'none',
+              /* Key: allow shrinking, never grow past available space */
               minWidth: 0,
-              flex: 1,
-              marginRight: 8,
+              overflow: 'hidden',
+              flex: '1 1 0%',
             }}
           >
-            <div className="logo-icon-pv"><Zap size={14} color="white" /></div>
-            <div style={{ minWidth: 0 }}>
+            <div
+              className="logo-icon-pv"
+              style={{ flexShrink: 0, width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Zap size={13} color="white" />
+            </div>
+
+            <div style={{ minWidth: 0, overflow: 'hidden' }}>
               <div style={{
-                fontFamily: 'var(--f-serif)', fontSize: 17,
-                color: 'var(--sidebar-text-active)', letterSpacing: '-0.01em', lineHeight: 1,
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                fontFamily: 'var(--f-serif)',
+                fontSize: 15,
+                color: 'var(--sidebar-text-active)',
+                letterSpacing: '-0.01em',
+                lineHeight: 1.15,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}>
                 PromptVault
               </div>
               <div style={{
-                fontFamily: 'var(--f-mono)', fontSize: 9.5, color: 'var(--sidebar-text)',
-                letterSpacing: '0.09em', textTransform: 'uppercase', marginTop: 2, opacity: 0.6,
-                whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                fontFamily: 'var(--f-mono)',
+                fontSize: 8.5,
+                color: 'var(--sidebar-text)',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                marginTop: 2,
+                opacity: 0.55,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}>
                 AI Manager
               </div>
             </div>
           </Link>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+
+          {/* Controls — never shrink */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0 }}>
             <ThemeToggle />
             {onClose && (
               <button
                 onClick={onClose}
                 className="hamburger-pv"
                 aria-label="Close menu"
-                style={{ border: 'none', background: 'rgba(240,236,230,0.08)', color: 'var(--sidebar-text)' }}
+                style={{ border: 'none', background: 'rgba(240,236,230,0.08)', color: 'var(--sidebar-text)', width: 28, height: 28 }}
               >
-                <X size={14} />
+                <X size={13} />
               </button>
             )}
           </div>
         </div>
       </div>
 
-      {/* ── Nav links ────────────────────────────────────── */}
+      {/* ── Nav ── */}
       <nav style={{ flex: 1, padding: '10px 10px 0', overflowY: 'auto' }}>
         {navGroups.map((group, gi) => (
           <div key={group.label} style={{ marginTop: gi > 0 ? 6 : 2 }}>
@@ -175,42 +190,36 @@ const Sidebar = ({ onClose, className = 'sidebar-pv' }) => {
         ))}
       </nav>
 
-      {/* ── Footer: user chip + logout ───────────────────── */}
+      {/* ── Footer ── */}
       <div style={{ padding: 10, borderTop: '1px solid var(--sidebar-divider)' }}>
         <NavLink to="/profile" onClick={onClose} style={{ textDecoration: 'none', display: 'block', width: '100%', minWidth: 0 }}>
           <div className="user-chip-pv" style={{ width: '100%', minWidth: 0, overflow: 'hidden' }}>
-
-            {/* Avatar circle with real initials — never "?" */}
             <div
               className="avatar-pv"
-              style={{ width: 34, height: 34, fontSize: 12, flexShrink: 0, background: avatarColor }}
-            >
-              {initials}
-            </div>
-
-            {/* Name + email stacked */}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{
-                fontSize: 13,
+              style={{
+                width: 34,
+                height: 34,
+                minWidth: 34,
+                fontSize: 12,
                 fontWeight: 600,
-                color: 'var(--sidebar-text-active)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                lineHeight: 1.3,
-              }}>
+                flexShrink: 0,
+                background: avatarColor,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textAlign: 'center',
+                lineHeight: 1,
+              }}
+            >
+              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, textTransform: 'uppercase' }}>
+                {initials}
+              </span>
+            </div>
+            <div style={{ flex: 1, minWidth: 0, overflow: 'hidden' }}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--sidebar-text-active)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', lineHeight: 1.3 }}>
                 {displayName}
               </div>
-              <div style={{
-                fontFamily: 'var(--f-mono)',
-                fontSize: 10.5,
-                color: 'var(--sidebar-text)',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                marginTop: 2,
-                lineHeight: 1.2,
-              }}>
+              <div style={{ fontFamily: 'var(--f-mono)', fontSize: 10.5, color: 'var(--sidebar-text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: 2, lineHeight: 1.2 }}>
                 {sidebarUser?.email}
               </div>
             </div>
@@ -220,18 +229,7 @@ const Sidebar = ({ onClose, className = 'sidebar-pv' }) => {
         <button
           onClick={handleLogout}
           className="nav-item-pv"
-          style={{ 
-            color: 'rgba(224,88,40,0.65)', 
-            marginTop: 1, 
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            width: '100%',
-            background: 'none',
-            border: 'none',
-            padding: '8px 10px'
-          }}
+          style={{ color: 'rgba(224,88,40,0.65)', marginTop: 1, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 10, width: '100%', background: 'none', border: 'none', padding: '8px 10px' }}
         >
           <div className="nav-icon-pv" style={{ width: 20, display: 'flex', justifyContent: 'center', flexShrink: 0 }}>
             <LogOut size={14} />

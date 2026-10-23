@@ -247,7 +247,7 @@
   }
   .sidebar-pv .nav-item-pv span,
   .sidebar-pv .nav-section-label-pv,
-  .sidebar-pv .user-chip-pv > div,
+  .sidebar-pv .user-chip-pv > div:not(.avatar-pv),
   .sidebar-pv .logo-icon-pv + div {
     display: none !important;
   }

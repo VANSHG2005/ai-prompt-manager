@@ -911,7 +911,7 @@ button, input, select, textarea {
   /* Hide text labels in collapsed sidebar */
   .sidebar-pv .nav-item-pv span,
   .sidebar-pv .nav-section-label-pv,
-  .sidebar-pv .user-chip-pv > div,
+  .sidebar-pv .user-chip-pv > div:not(.avatar-pv),
   .sidebar-pv .logo-icon-pv + div {
     display: none !important;
   }
@@ -1036,7 +1036,7 @@ button, input, select, textarea {
   /* Restore sidebar text labels */
   .sidebar-pv .nav-item-pv span,
   .sidebar-pv .nav-section-label-pv,
-  .sidebar-pv .user-chip-pv > div,
+  .sidebar-pv .user-chip-pv > div:not(.avatar-pv),
   .sidebar-pv .logo-icon-pv + div {
     display: block !important;
   }
