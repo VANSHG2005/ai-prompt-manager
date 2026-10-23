@@ -6,6 +6,7 @@ const errorHandler = require('./middleware/errorHandler');
 
 dotenv.config();
 
+// Auto-reload on config updates
 connectDB();
 
 const app = express();

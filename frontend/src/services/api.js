@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { isTokenExpired } from '../utils/token';
 
 // ── Base URL resolution ───────────────────────────────────────────────────
 function resolveApiBaseUrl() {
@@ -25,17 +26,36 @@ const api = axios.create({
   timeout: 15000, // 15-second timeout — prevents infinite loading spinners
 });
 
-// ── Request interceptor — attach JWT ─────────────────────────────────────
+// Helper to trigger expiration handling across the app
+function handleSessionExpired() {
+  localStorage.removeItem('token');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('user');
+  window.dispatchEvent(new CustomEvent('auth:session-expired'));
+
+  const publicPaths = ['/login', '/register'];
+  if (!publicPaths.includes(window.location.pathname)) {
+    window.location.href = '/login?expired=true';
+  }
+}
+
+// ── Request interceptor — attach JWT and check pre-flight expiry ───────────
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    if (token) {
+      if (isTokenExpired(token)) {
+        handleSessionExpired();
+        return Promise.reject(new Error('Session expired. Please sign in again.'));
+      }
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ── Response interceptor — handle errors globally ─────────────────────────
+// ── Response interceptor — handle errors and 401 unauthorized ─────────────
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -50,15 +70,20 @@ api.interceptors.response.use(
       return Promise.reject(networkError);
     }
 
-    // 401 — session expired
-    if (error.response.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      // Only redirect if not already on a public page
-      const publicPaths = ['/', '/login', '/register'];
-      if (!publicPaths.includes(window.location.pathname)) {
-        window.location.href = '/login';
+    const { status, config: originalRequest } = error.response;
+
+    // 401 Unauthorized handling — token expired or invalid
+    if (status === 401) {
+      const url = originalRequest?.url || '';
+
+      // Don't intercept login or register endpoint 401s (let form show error message)
+      if (url.includes('/auth/login') || url.includes('/auth/register')) {
+        return Promise.reject(error);
       }
+
+      // Any 401 on protected routes means token is expired or invalid -> logout
+      handleSessionExpired();
+      return Promise.reject(error);
     }
 
     return Promise.reject(error);

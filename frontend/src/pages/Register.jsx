@@ -42,8 +42,11 @@ const Register = () => {
   const [showPw, setShowPw] = useState(false);
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState('');
-  const { register, loading, user } = useAuth();
+  const { register, loading, user, isInitializing } = useAuth();
   const navigate = useNavigate();
+
+  // Wait until session initialization finishes before redirecting
+  if (isInitializing) return null;
 
   // Already authenticated — skip registration
   if (user) return <Navigate to="/dashboard" replace />;

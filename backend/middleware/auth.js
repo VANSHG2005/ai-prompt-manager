@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { getJwtSecret } = require('../utils/generateToken');
 
 const protect = async (req, res, next) => {
   let token;
@@ -9,20 +10,39 @@ const protect = async (req, res, next) => {
   }
 
   if (!token) {
-    return res.status(401).json({ success: false, message: 'Not authorized, no token' });
+    return res.status(401).json({
+      success: false,
+      code: 'NO_TOKEN',
+      message: 'Not authorized, no token provided',
+    });
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, getJwtSecret());
     req.user = await User.findById(decoded.id).select('-password');
 
     if (!req.user) {
-      return res.status(401).json({ success: false, message: 'User not found' });
+      return res.status(401).json({
+        success: false,
+        code: 'USER_NOT_FOUND',
+        message: 'User no longer exists',
+      });
     }
 
     next();
   } catch (error) {
-    return res.status(401).json({ success: false, message: 'Not authorized, invalid token' });
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        code: 'TOKEN_EXPIRED',
+        message: 'Access token has expired',
+      });
+    }
+    return res.status(401).json({
+      success: false,
+      code: 'INVALID_TOKEN',
+      message: 'Not authorized, invalid token',
+    });
   }
 };
 

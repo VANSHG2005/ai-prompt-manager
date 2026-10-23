@@ -1,18 +1,24 @@
 import { useState } from 'react';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Eye, EyeOff, Zap, AlertCircle } from 'lucide-react';
-import { MiniSpinner } from '../components/common/Spinner';
+import { Eye, EyeOff, Zap, AlertCircle, Clock } from 'lucide-react';
+import { MiniSpinner, PageLoader } from '../components/common/Spinner';
 import ThemeToggle from '../components/common/ThemeToggle';
 
 const Login = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPw, setShowPw] = useState(false);
   const [error, setError] = useState('');
-  const { login, loading, user } = useAuth();
+  const [searchParams] = useSearchParams();
+  const isSessionExpired = searchParams.get('expired') === 'true';
+
+  const { login, loading, user, isInitializing } = useAuth();
   const navigate = useNavigate();
 
-  // Already authenticated — skip the login page
+  // Wait until session validation finishes before redirecting or rendering
+  if (isInitializing) return <PageLoader />;
+
+  // Already authenticated with valid token — skip the login page
   if (user) return <Navigate to="/dashboard" replace />;
 
   const handleSubmit = async (e) => {
@@ -47,6 +53,16 @@ const Login = () => {
         <div className="card-pv" style={{ padding: '32px' }}>
           <h2 style={{ fontFamily: 'var(--f-serif)', fontSize: '24px', color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '5px' }}>Sign in</h2>
           <p style={{ fontSize: '14px', color: 'var(--text-tertiary)', marginBottom: '24px' }}>Enter your credentials to continue</p>
+
+          {/* Session Expired Banner */}
+          {isSessionExpired && !error && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', background: 'rgba(200, 129, 26, 0.12)', border: '1px solid rgba(200, 129, 26, 0.3)', borderRadius: 'var(--r-sm)', marginBottom: '16px' }}>
+              <Clock size={15} color="var(--amber)" style={{ flexShrink: 0 }} />
+              <p style={{ fontSize: '13px', color: 'var(--amber)', margin: 0, fontWeight: 500 }}>
+                Your session has expired. Please sign in again.
+              </p>
+            </div>
+          )}
 
           {/* Inline error banner */}
           {error && (
